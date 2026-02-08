@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+/* ===== ClipForge 全局主题变量 ===== */
+
+:root {
+  /* 背景色 */
+  --color-bg-primary: #FAFAFA;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F5F5F7;
+  --color-bg-hover: #F0F0F2;
+  --color-bg-active: #E8E8ED;
+
+  /* 文字色 */
+  --color-text-primary: #1D1D1F;
+  --color-text-secondary: #6E6E73;
+  --color-text-placeholder: #AEAEB2;
+  --color-text-disabled: #C7C7CC;
+  --color-text-inverse: #FFFFFF;
+
+  /* 边框与分割 */
+  --color-border: #E5E5EA;
+  --color-border-focus: #6C5CE7;
+  --color-divider: #E5E5EA;
+
+  /* 强调色 — 紫蓝色 */
+  --color-accent: #6C5CE7;
+  --color-accent-hover: #5B4BD6;
+  --color-accent-active: #4A3BC5;
+  --color-accent-light: rgba(108, 92, 231, 0.12);
+  --color-accent-secondary: #00C9A7;
+
+  /* 状态色 */
+  --color-success: #34C759;
+  --color-warning: #FF9500;
+  --color-error: #FF3B30;
+  --color-info: #007AFF;
+
+  /* 阴影 */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.16);
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* 字体 */
+  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                 'Helvetica Neue', 'PingFang SC', sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-md: 15px;
+  --font-size-lg: 17px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+
+  /* 动画 */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* 进度条 */
+  --progress-height: 6px;
+  --progress-bg: #E5E5EA;
+  --progress-fill: #6C5CE7;
+}
+
+/* ===== 暗色模式 ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-primary: #1C1C1E;
+    --color-bg-secondary: #2C2C2E;
+    --color-bg-tertiary: #3A3A3C;
+    --color-bg-hover: #3A3A3C;
+    --color-bg-active: #48484A;
+
+    --color-text-primary: #F5F5F7;
+    --color-text-secondary: #8E8E93;
+    --color-text-placeholder: #636366;
+    --color-text-disabled: #48484A;
+    --color-text-inverse: #1D1D1F;
+
+    --color-border: #38383A;
+    --color-border-focus: #7C6CF7;
+    --color-divider: #38383A;
+
+    --color-accent: #7C6CF7;
+    --color-accent-hover: #8D7EF8;
+    --color-accent-active: #6C5CE7;
+    --color-accent-light: rgba(124, 108, 247, 0.15);
+    --color-accent-secondary: #30E8C8;
+
+    --color-success: #30D158;
+    --color-warning: #FF9F0A;
+    --color-error: #FF453A;
+    --color-info: #0A84FF;
+
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+    --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    --progress-bg: #38383A;
+    --progress-fill: #7C6CF7;
+  }
+}
+
+/* ===== 全局基础样式 ===== */
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* 可选择的文字区域 */
+input, textarea, [data-selectable] {
+  user-select: text;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-placeholder);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* ===== 动画关键帧 ===== */
+
+/* 页面从右侧滑入 */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 淡入 */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Toast 从顶部滑入 */
+@keyframes slide-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right var(--transition-normal) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-normal) forwards;
+}
+
+.animate-slide-in-top {
+  animation: slide-in-top var(--transition-fast) forwards;
+}
