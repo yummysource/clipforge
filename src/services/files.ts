@@ -2,6 +2,7 @@
  * @file 文件操作服务
  * @description 封装文件对话框、路径处理等文件系统操作
  */
+import { invoke } from '@tauri-apps/api/core';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { VIDEO_EXTENSIONS, AUDIO_EXTENSIONS, SUBTITLE_EXTENSIONS } from '@/lib/constants';
 
@@ -122,4 +123,16 @@ export async function selectDirectory(): Promise<string | null> {
   });
   if (typeof result === 'string') return result;
   return null;
+}
+
+/**
+ * 在 macOS Finder 中展示指定文件
+ *
+ * 调用后端 `open -R` 命令打开 Finder 并高亮选中文件。
+ * 文件不存在时尝试打开其父目录
+ *
+ * @param path - 文件的完整路径
+ */
+export async function revealInFinder(path: string): Promise<void> {
+  return invoke('reveal_in_finder', { path });
 }

@@ -22,6 +22,35 @@ interface SettingsStoreState extends AppSettings {
 }
 
 /**
+ * 从 store 状态中提取纯设置对象（不含 store 方法和内部状态）
+ * @param state - 完整的 store 状态
+ * @returns 纯 AppSettings 对象
+ */
+function extractSettings(state: SettingsStoreState): AppSettings {
+  return {
+    outputDirectory: state.outputDirectory,
+    hardwareAccel: state.hardwareAccel,
+    maxConcurrent: state.maxConcurrent,
+    notifyOnComplete: state.notifyOnComplete,
+    openOnComplete: state.openOnComplete,
+    outputSuffix: state.outputSuffix,
+    overwriteExisting: state.overwriteExisting,
+  };
+}
+
+/**
+ * 将设置保存到后端（静默处理错误）
+ * @param settings - 要保存的设置
+ */
+async function persistSettings(settings: AppSettings): Promise<void> {
+  try {
+    await settingsService.saveSettings(settings);
+  } catch {
+    /* 保存失败静默处理，设置已在前端更新 */
+  }
+}
+
+/**
  * 设置 Store
  *
  * 应用启动时从后端加载设置，修改时即时同步到后端持久化。
@@ -43,51 +72,16 @@ export const useSettingsStore = create<SettingsStoreState>((set, get) => ({
 
   updateSetting: async (key, value) => {
     set({ [key]: value } as Partial<SettingsStoreState>);
-    /* 收集当前所有设置保存到后端 */
-    const state = get();
-    const settings: AppSettings = {
-      outputDirectory: state.outputDirectory,
-      hardwareAccel: state.hardwareAccel,
-      maxConcurrent: state.maxConcurrent,
-      notifyOnComplete: state.notifyOnComplete,
-      openOnComplete: state.openOnComplete,
-      sameAsSource: state.sameAsSource,
-      outputSuffix: state.outputSuffix,
-      overwriteExisting: state.overwriteExisting,
-    };
-    try {
-      await settingsService.saveSettings(settings);
-    } catch {
-      /* 保存失败静默处理，设置已在前端更新 */
-    }
+    await persistSettings(extractSettings(get()));
   },
 
   updateSettings: async (partial) => {
     set(partial as Partial<SettingsStoreState>);
-    const state = get();
-    const settings: AppSettings = {
-      outputDirectory: state.outputDirectory,
-      hardwareAccel: state.hardwareAccel,
-      maxConcurrent: state.maxConcurrent,
-      notifyOnComplete: state.notifyOnComplete,
-      openOnComplete: state.openOnComplete,
-      sameAsSource: state.sameAsSource,
-      outputSuffix: state.outputSuffix,
-      overwriteExisting: state.overwriteExisting,
-    };
-    try {
-      await settingsService.saveSettings(settings);
-    } catch {
-      /* 保存失败静默处理 */
-    }
+    await persistSettings(extractSettings(get()));
   },
 
   resetToDefaults: async () => {
     set({ ...DEFAULT_SETTINGS });
-    try {
-      await settingsService.saveSettings(DEFAULT_SETTINGS);
-    } catch {
-      /* 保存失败静默处理 */
-    }
+    await persistSettings(DEFAULT_SETTINGS);
   },
 }));

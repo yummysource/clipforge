@@ -10,6 +10,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { resizeVideo } from '@/services/ffmpeg';
 import { RESOLUTION_PRESETS, FRAME_RATE_PRESETS, SCALE_ALGORITHMS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 
 /**
  * 分辨率/帧率调整页面组件
@@ -48,11 +49,10 @@ export function ResizePage() {
     if (!file) return;
 
     const outputName = generateOutputName(file.name, outputSuffix);
-    const outputDir = file.path.substring(0, file.path.lastIndexOf('/'));
 
     execute(resizeVideo, {
       inputPath: file.path,
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(file.path, outputName),
       width,
       height,
       keepAspectRatio,

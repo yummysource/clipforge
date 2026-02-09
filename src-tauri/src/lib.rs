@@ -37,6 +37,7 @@ pub fn run() {
             commands::task::cancel_task,
             commands::settings::get_settings,
             commands::settings::save_settings,
+            commands::finder::reveal_in_finder,
         ])
         .run(tauri::generate_context!())
         .expect("启动 ClipForge 应用失败");

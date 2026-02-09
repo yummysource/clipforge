@@ -10,6 +10,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { trimVideo } from '@/services/ffmpeg';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 
 /**
  * 裁剪剪切页面组件
@@ -48,11 +49,10 @@ export function TrimPage() {
     if (!currentFile) return;
 
     const outputName = generateOutputName(currentFile.name, outputSuffix);
-    const outputDir = currentFile.path.substring(0, currentFile.path.lastIndexOf('/'));
 
     execute(trimVideo, {
       inputPath: currentFile.path,
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(currentFile.path, outputName),
       segments: segments.map((s) => ({ start: s.start, end: s.end })),
       preciseCut,
       mergeSegments,

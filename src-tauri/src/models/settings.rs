@@ -1,18 +1,20 @@
 /// 应用设置数据模型
 ///
 /// 定义 ClipForge 应用的用户可配置项，
-/// 持久化存储在 $APPDATA/com.clipforge.app/settings.json
+/// 持久化存储在 $APPDATA/com.clipforge.app/settings.json。
+/// 字段与前端 TypeScript `AppSettings` 接口完全对齐
 
 use serde::{Deserialize, Serialize};
 
 /// 应用设置
 ///
-/// 包含所有用户可配置的应用选项，
-/// 使用 Default trait 提供合理的默认值
+/// 包含所有用户可配置的应用选项。
+/// 使用 `#[serde(default)]` 确保旧版设置文件中缺失的字段自动填充默认值，
+/// 避免反序列化失败
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct AppSettings {
-    /// 默认输出目录路径（空字符串表示与输入文件同目录）
+    /// 默认输出目录路径（空字符串表示输出到源文件所在目录）
     pub output_directory: String,
     /// 是否优先使用 VideoToolbox 硬件加速（macOS 专用）
     pub hardware_accel: bool,
@@ -20,38 +22,32 @@ pub struct AppSettings {
     pub max_concurrent: u32,
     /// 处理完成后是否发送系统通知
     pub notify_on_complete: bool,
-    /// 处理完成后是否自动在 Finder 中打开输出目录
+    /// 处理完成后是否自动在 Finder 中打开输出文件所在目录
     pub open_on_complete: bool,
-    /// 输出文件命名冲突时是否自动添加后缀（false 则覆盖）
-    pub auto_rename: bool,
-    /// 默认视频编码预设（如 "medium", "slow"）
-    pub default_preset: String,
-    /// 默认视频质量（CRF 值）
-    pub default_quality: u32,
-    /// 默认音频码率（kbps）
-    pub default_audio_bitrate: u32,
+    /// 输出文件命名后缀（如 "_output"）
+    pub output_suffix: String,
+    /// 文件已存在时是否自动覆盖（false 则自动添加序号）
+    pub overwrite_existing: bool,
 }
 
 impl Default for AppSettings {
     /// 提供合理的默认设置值
     ///
-    /// - 输出目录为空（与输入同目录）
-    /// - 不启用硬件加速（兼容性优先）
-    /// - 单并发（节省系统资源）
+    /// - 输出目录为空（与源文件同目录）
+    /// - 启用硬件加速
+    /// - 单并发
     /// - 完成后通知但不自动打开
-    /// - 自动重命名避免覆盖
-    /// - medium 预设平衡速度和质量
+    /// - 默认后缀 "_output"
+    /// - 不自动覆盖
     fn default() -> Self {
         Self {
             output_directory: String::new(),
-            hardware_accel: false,
+            hardware_accel: true,
             max_concurrent: 1,
             notify_on_complete: true,
             open_on_complete: false,
-            auto_rename: true,
-            default_preset: "medium".to_string(),
-            default_quality: 23,
-            default_audio_bitrate: 128,
+            output_suffix: "_output".to_string(),
+            overwrite_existing: false,
         }
     }
 }

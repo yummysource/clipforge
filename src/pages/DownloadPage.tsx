@@ -27,7 +27,6 @@ import type { VideoInfo, FormatInfo } from '@/services/download';
 export function DownloadPage() {
   const { status, progress, error, execute, cancel, reset } = useTask();
   const outputDir = useSettingsStore((s) => s.outputDirectory);
-  const sameAsSource = useSettingsStore((s) => s.sameAsSource);
 
   /* URL 输入状态 */
   const [url, setUrl] = useState('');
@@ -80,7 +79,7 @@ export function DownloadPage() {
 
     // 确定输出目录：优先使用设置中的目录，否则用系统下载目录
     let dir = outputDir || '';
-    if (!dir || sameAsSource) {
+    if (!dir) {
       try {
         dir = await downloadDir();
       } catch {
@@ -94,7 +93,7 @@ export function DownloadPage() {
       formatId: selectedFormatId,
       outputPath,
     });
-  }, [videoInfo, selectedFormatId, url, outputDir, sameAsSource, execute]);
+  }, [videoInfo, selectedFormatId, url, outputDir, execute]);
 
   /**
    * 重置所有状态

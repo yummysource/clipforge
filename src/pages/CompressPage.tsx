@@ -11,6 +11,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { compressVideo } from '@/services/ffmpeg';
 import { COMPRESS_PRESETS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 import type { CompressMode } from '@/types/presets';
 
 /**
@@ -51,11 +52,10 @@ export function CompressPage() {
     if (!file) return;
 
     const outputName = generateOutputName(file.name, outputSuffix);
-    const outputDir = file.path.substring(0, file.path.lastIndexOf('/'));
 
     execute(compressVideo, {
       inputPath: file.path,
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(file.path, outputName),
       mode,
       targetSizeMb: mode === 'bySize' ? targetSizeMb : undefined,
       compressRatio: mode === 'byRatio' ? compressRatio : undefined,

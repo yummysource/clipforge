@@ -5,10 +5,11 @@
 
 /**
  * 应用全局设置
- * @description 持久化存储在 Tauri appData 目录下的设置 JSON 文件中
+ * @description 持久化存储在 Tauri appData 目录下的设置 JSON 文件中。
+ * 前后端字段完全对齐，通过 serde(rename_all = "camelCase") 自动映射
  */
 export interface AppSettings {
-  /** 默认输出目录（空字符串表示与源文件同目录） */
+  /** 默认输出目录路径（空字符串表示输出到源文件所在目录） */
   outputDirectory: string;
   /** 是否启用硬件加速（macOS VideoToolbox） */
   hardwareAccel: boolean;
@@ -16,13 +17,11 @@ export interface AppSettings {
   maxConcurrent: number;
   /** 处理完成后是否发送系统通知 */
   notifyOnComplete: boolean;
-  /** 处理完成后是否自动打开输出目录 */
+  /** 处理完成后是否自动打开输出文件所在目录 */
   openOnComplete: boolean;
-  /** 是否输出文件与源文件同目录 */
-  sameAsSource: boolean;
-  /** 文件命名后缀（如 "_converted"） */
+  /** 输出文件命名后缀（如 "_output"） */
   outputSuffix: string;
-  /** 文件已存在时是否自动覆盖 */
+  /** 文件已存在时是否自动覆盖（false 则自动添加序号） */
   overwriteExisting: boolean;
 }
 
@@ -36,7 +35,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   maxConcurrent: 1,
   notifyOnComplete: true,
   openOnComplete: false,
-  sameAsSource: true,
   outputSuffix: '_output',
   overwriteExisting: false,
 };

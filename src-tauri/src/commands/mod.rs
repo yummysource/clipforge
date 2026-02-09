@@ -8,6 +8,8 @@
 pub mod audio;
 /// 视频下载（YouTube/X/Instagram 等，基于 yt-dlp sidecar）
 pub mod download;
+/// Finder 操作（在 macOS Finder 中展示文件）
+pub mod finder;
 /// 视频压缩（按大小、按比例、按质量）
 pub mod compress;
 /// 格式转换

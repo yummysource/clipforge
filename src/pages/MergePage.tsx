@@ -9,6 +9,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { mergeVideos } from '@/services/ffmpeg';
 import { formatDuration, generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 import { GripVertical, X } from 'lucide-react';
 
 /**
@@ -56,11 +57,10 @@ export function MergePage() {
 
     const firstFile = files[0];
     const outputName = generateOutputName(firstFile.name, `${outputSuffix}_merged`);
-    const outputDir = firstFile.path.substring(0, firstFile.path.lastIndexOf('/'));
 
     execute(mergeVideos, {
       inputPaths: files.map((f) => f.path),
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(firstFile.path, outputName),
       transition: transitionType !== 'none'
         ? { transitionType, duration: transitionDuration }
         : undefined,

@@ -1,10 +1,13 @@
 /**
  * @file 单任务执行 Hook
- * @description 管理单个 ffmpeg 任务的生命周期，包括启动、进度跟踪、取消
+ * @description 管理单个 ffmpeg 任务的生命周期，包括启动、进度跟踪、取消。
+ * 任务完成时自动根据设置执行后处理操作（打开目录等）
  */
 import { useState, useCallback, useRef } from 'react';
 import type { TaskStatus, ProgressUpdate, TaskEvent, TaskResult } from '@/types/task';
 import { cancelTask } from '@/services/ffmpeg';
+import { revealInFinder } from '@/services/files';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 
 /** 任务 Hook 返回值 */
 export interface UseTaskReturn {
@@ -32,6 +35,7 @@ export interface UseTaskReturn {
  *
  * 通过泛型 serviceFn 参数支持所有 ffmpeg 操作类型。
  * 自动处理 Channel 事件并更新状态。
+ * 任务完成后根据 openOnComplete 设置自动在 Finder 中展示输出文件。
  *
  * @returns 任务状态和控制函数
  */
@@ -78,6 +82,8 @@ export function useTask(): UseTaskReturn {
               elapsed: event.data.elapsed,
               error: null,
             });
+            /* 任务完成后自动打开目录（根据设置） */
+            handlePostComplete(event.data.outputPath);
             break;
           case 'failed':
             setStatus('failed');
@@ -125,4 +131,18 @@ export function useTask(): UseTaskReturn {
   }, []);
 
   return { status, progress, result, error, execute, cancel, reset };
+}
+
+/**
+ * 任务完成后处理：根据设置决定是否在 Finder 中展示输出文件
+ *
+ * @param outputPath - 输出文件路径
+ */
+function handlePostComplete(outputPath: string): void {
+  const { openOnComplete } = useSettingsStore.getState();
+  if (openOnComplete && outputPath) {
+    revealInFinder(outputPath).catch(() => {
+      /* 打开 Finder 失败不影响主流程 */
+    });
+  }
 }

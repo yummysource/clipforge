@@ -11,6 +11,7 @@ import { processAudio } from '@/services/ffmpeg';
 import { openAudioFile } from '@/services/files';
 import { AUDIO_FORMATS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 import type { AudioMode } from '@/types/presets';
 
 /**
@@ -48,11 +49,10 @@ export function AudioPage() {
 
     const ext = mode === 'extract' ? outputFormat : undefined;
     const outputName = generateOutputName(file.name, outputSuffix, ext);
-    const outputDir = file.path.substring(0, file.path.lastIndexOf('/'));
 
     execute(processAudio, {
       inputPath: file.path,
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(file.path, outputName),
       mode,
       outputFormat: mode === 'extract' ? outputFormat : undefined,
       replaceAudioPath: mode === 'replace' ? replaceAudioPath : undefined,

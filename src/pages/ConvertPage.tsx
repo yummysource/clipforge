@@ -11,6 +11,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { convertVideo } from '@/services/ffmpeg';
 import { CONVERT_PRESETS, VIDEO_FORMATS, VIDEO_CODECS, AUDIO_CODECS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 
 /**
  * 格式转换页面组件
@@ -55,12 +56,10 @@ export function ConvertPage() {
     if (!file) return;
 
     const outputName = generateOutputName(file.name, outputSuffix, outputFormat);
-    const outputDir = file.path.substring(0, file.path.lastIndexOf('/'));
-    const outputPath = `${outputDir}/${outputName}`;
 
     execute(convertVideo, {
       inputPath: file.path,
-      outputPath,
+      outputPath: buildOutputPath(file.path, outputName),
       outputFormat,
       videoCodec,
       audioCodec,

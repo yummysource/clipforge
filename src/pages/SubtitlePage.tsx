@@ -10,6 +10,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { processSubtitle } from '@/services/ffmpeg';
 import { openSubtitleFile } from '@/services/files';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 import type { SubtitleMode } from '@/types/presets';
 
 /**
@@ -49,11 +50,10 @@ export function SubtitlePage() {
 
     const ext = mode === 'extract' ? outputFormat : undefined;
     const outputName = generateOutputName(file.name, outputSuffix, ext);
-    const outputDir = file.path.substring(0, file.path.lastIndexOf('/'));
 
     execute(processSubtitle, {
       inputPath: file.path,
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(file.path, outputName),
       mode,
       subtitlePath: mode !== 'extract' ? subtitlePath : undefined,
       outputFormat: mode === 'extract' ? outputFormat : undefined,

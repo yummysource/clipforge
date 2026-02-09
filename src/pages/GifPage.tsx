@@ -11,6 +11,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { createGif } from '@/services/ffmpeg';
 import { FRAME_RATE_PRESETS, GIF_DITHER_ALGORITHMS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 
 /**
  * GIF 制作页面组件
@@ -54,11 +55,10 @@ export function GifPage() {
     if (!currentFile) return;
 
     const outputName = generateOutputName(currentFile.name, outputSuffix, 'gif');
-    const outputDir = currentFile.path.substring(0, currentFile.path.lastIndexOf('/'));
 
     execute(createGif, {
       inputPath: currentFile.path,
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(currentFile.path, outputName),
       startTime: segments[0].start,
       duration: gifDuration,
       width: gifWidth,

@@ -10,6 +10,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { addWatermark } from '@/services/ffmpeg';
 import { openImageFile } from '@/services/files';
 import { generateOutputName } from '@/lib/format';
+import { buildOutputPath } from '@/lib/output';
 import type { WatermarkType, WatermarkPosition } from '@/types/presets';
 
 /**
@@ -52,11 +53,10 @@ export function WatermarkPage() {
     if (!file) return;
 
     const outputName = generateOutputName(file.name, outputSuffix);
-    const outputDir = file.path.substring(0, file.path.lastIndexOf('/'));
 
     execute(addWatermark, {
       inputPath: file.path,
-      outputPath: `${outputDir}/${outputName}`,
+      outputPath: buildOutputPath(file.path, outputName),
       watermarkType,
       imagePath: watermarkType === 'image' ? imagePath : undefined,
       imageScale: watermarkType === 'image' ? imageScale : undefined,
