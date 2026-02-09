@@ -24,7 +24,7 @@ import type { SubtitleMode } from '@/types/presets';
  */
 export function SubtitlePage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask();
+  const { status, progress, error, execute, cancel, reset } = useTask('subtitle');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);

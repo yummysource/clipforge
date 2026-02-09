@@ -6,3 +6,5 @@
 pub mod path;
 /// 时间格式工具（秒数与时间戳互转）
 pub mod time;
+/// 文字图片渲染工具（将文本渲染为透明 PNG，替代 ffmpeg drawtext 滤镜）
+pub mod text_image;

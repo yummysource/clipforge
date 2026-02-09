@@ -683,7 +683,8 @@ pub fn build_audio_command(params: &AudioParams, input_duration: f64) -> Vec<Str
 
 /// 构建水印叠加命令
 ///
-/// 支持图片水印（overlay 滤镜）和文字水印（drawtext 滤镜），
+/// 支持图片水印（overlay 滤镜）。文字水印由 watermark.rs 预渲染为 PNG 后
+/// 转为图片水印处理，避免依赖 ffmpeg 的 drawtext 滤镜（需 libfreetype）。
 /// 通过 WatermarkPosition 枚举计算叠加位置坐标
 ///
 /// # 参数
@@ -703,55 +704,57 @@ pub fn build_watermark_command(params: &WatermarkParams) -> Vec<String> {
             let image_path = params.image_path.as_deref().unwrap_or("");
             cmd = cmd.input(image_path);
 
-            // 构建水印处理滤镜（缩放 + 透明度）
             let opacity = params.opacity.unwrap_or(1.0);
-            let scale = params.image_scale.unwrap_or(0.15);
-            let mut wm_filters = Vec::new();
 
-            // 按视频宽度的比例缩放水印
-            wm_filters.push(format!("[1:v]scale=iw*{}:-1", scale));
+            // Build filter chain based on whether scaling is needed.
+            // image_scale = Some(v): scale watermark to v * video_width using scale2ref
+            // image_scale = None: use watermark at its natural pixel size (e.g. text-rendered PNG)
+            let filter = if let Some(scale) = params.image_scale {
+                // Scale watermark relative to video width using scale2ref
+                // [1:v] = watermark image, [0:v] = video (reference)
+                // ref_w = video width, iw/ih = watermark dimensions
+                let scale2ref_filter = format!(
+                    "[1:v][0:v]scale2ref=trunc(ref_w*{s}/2)*2:trunc(ref_w*{s}*ih/iw/2)*2[wm_scaled][base]",
+                    s = scale
+                );
 
-            // 如果不是完全不透明，添加透明度处理
-            if opacity < 1.0 {
-                wm_filters.push(format!("format=rgba,colorchannelmixer=aa={}", opacity));
-            }
+                // Optional opacity processing on the scaled watermark
+                let wm_label = if opacity < 1.0 {
+                    format!(
+                        ";[wm_scaled]format=rgba,colorchannelmixer=aa={}[wm]",
+                        opacity
+                    )
+                } else {
+                    ";[wm_scaled]null[wm]".to_string()
+                };
 
-            let wm_filter_str = format!("{}[wm]", wm_filters.join(","));
+                let (x, y) = get_image_overlay_position(&params.position, margin, offset_x, offset_y);
+                let overlay = format!(";[base][wm]overlay={}:{}", x, y);
+                format!("{}{}{}", scale2ref_filter, wm_label, overlay)
+            } else {
+                // No scaling — overlay watermark at natural size (used by text-rendered PNGs)
+                let wm_label = if opacity < 1.0 {
+                    format!(
+                        "[1:v]format=rgba,colorchannelmixer=aa={}[wm]",
+                        opacity
+                    )
+                } else {
+                    "[1:v]null[wm]".to_string()
+                };
 
-            // 获取 overlay 位置坐标
-            let (x, y) = get_image_overlay_position(&params.position, margin, offset_x, offset_y);
-            let overlay = format!("[0:v][wm]overlay={}:{}", x, y);
+                let (x, y) = get_image_overlay_position(&params.position, margin, offset_x, offset_y);
+                let overlay = format!(";[0:v][wm]overlay={}:{}", x, y);
+                format!("{}{}", wm_label, overlay)
+            };
 
-            let filter = format!("{};{}", wm_filter_str, overlay);
             cmd = cmd.complex_filter(&filter);
         }
         WatermarkType::Text => {
-            let text = params.text.as_deref().unwrap_or("Watermark");
-            let font_size = params.font_size.unwrap_or(24);
-            let font_color = params.font_color.as_deref().unwrap_or("white");
-            let border_width = params.border_width.unwrap_or(2);
-            let border_color = params.border_color.as_deref().unwrap_or("black");
-
-            // 获取 drawtext 位置坐标
-            let (x, y) = get_text_position(&params.position, margin, offset_x, offset_y);
-
-            // 构建 drawtext 滤镜
-            let mut drawtext_parts = vec![
-                format!("text='{}'", escape_drawtext(text)),
-                format!("fontsize={}", font_size),
-                format!("fontcolor={}", font_color),
-                format!("x={}", x),
-                format!("y={}", y),
-                format!("borderw={}", border_width),
-                format!("bordercolor={}", border_color),
-            ];
-
-            // 可选字体文件
-            if let Some(ref font_path) = params.font_path {
-                drawtext_parts.push(format!("fontfile={}", font_path));
-            }
-
-            cmd = cmd.video_filter(&format!("drawtext={}", drawtext_parts.join(":")));
+            // Text watermarks are pre-rendered to PNG by watermark.rs (prepare_watermark_params)
+            // and arrive here as Image type. This branch should not normally be reached.
+            // If it is, fall back to a no-op (pass-through) to avoid using the unavailable
+            // drawtext filter (bundled ffmpeg lacks libfreetype).
+            log::warn!("Text watermark reached builder directly — should have been converted to Image type");
         }
     }
 
@@ -1048,51 +1051,6 @@ fn get_image_overlay_position(
     (x, y)
 }
 
-/// 获取文字水印的 drawtext 位置坐标
-///
-/// 返回 drawtext 滤镜的 x/y 表达式字符串，
-/// w/h 代表视频尺寸，text_w/text_h 代表文字尺寸
-fn get_text_position(
-    position: &WatermarkPosition,
-    margin: i32,
-    offset_x: i32,
-    offset_y: i32,
-) -> (String, String) {
-    let (base_x, base_y) = match position {
-        WatermarkPosition::TopLeft => (format!("{}", margin), format!("{}", margin)),
-        WatermarkPosition::TopCenter => (format!("(w-text_w)/2"), format!("{}", margin)),
-        WatermarkPosition::TopRight => (format!("w-text_w-{}", margin), format!("{}", margin)),
-        WatermarkPosition::CenterLeft => (format!("{}", margin), format!("(h-text_h)/2")),
-        WatermarkPosition::Center => (format!("(w-text_w)/2"), format!("(h-text_h)/2")),
-        WatermarkPosition::CenterRight => (format!("w-text_w-{}", margin), format!("(h-text_h)/2")),
-        WatermarkPosition::BottomLeft => (format!("{}", margin), format!("h-text_h-{}", margin)),
-        WatermarkPosition::BottomCenter => (format!("(w-text_w)/2"), format!("h-text_h-{}", margin)),
-        WatermarkPosition::BottomRight => (format!("w-text_w-{}", margin), format!("h-text_h-{}", margin)),
-    };
-
-    let x = if offset_x != 0 {
-        format!("{}+{}", base_x, offset_x)
-    } else {
-        base_x
-    };
-    let y = if offset_y != 0 {
-        format!("{}+{}", base_y, offset_y)
-    } else {
-        base_y
-    };
-
-    (x, y)
-}
-
-/// 转义 drawtext 滤镜中的特殊字符
-///
-/// ffmpeg drawtext 中需要对单引号和反斜杠进行转义
-fn escape_drawtext(text: &str) -> String {
-    text.replace('\\', "\\\\")
-        .replace('\'', "\\'")
-        .replace(':', "\\:")
-        .replace(';', "\\;")
-}
 
 /// 转义滤镜中的文件路径
 ///

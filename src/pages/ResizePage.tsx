@@ -25,7 +25,7 @@ import { useT } from '@/i18n';
  */
 export function ResizePage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask();
+  const { status, progress, error, execute, cancel, reset } = useTask('resize');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);

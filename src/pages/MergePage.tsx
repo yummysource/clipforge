@@ -24,7 +24,7 @@ import { useT } from '@/i18n';
  */
 export function MergePage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask();
+  const { status, progress, error, execute, cancel, reset } = useTask('merge');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const setSelectedIndex = useAppStore((s) => s.setSelectedFileIndex);

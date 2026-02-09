@@ -23,7 +23,7 @@ import { useT } from '@/i18n';
  * - 多片段可选合并为一个文件或分别导出
  */
 export function TrimPage() {
-  const { status, progress, error, execute, cancel, reset } = useTask();
+  const { status, progress, error, execute, cancel, reset } = useTask('trim');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);

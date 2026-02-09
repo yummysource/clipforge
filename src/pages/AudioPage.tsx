@@ -26,7 +26,7 @@ import type { AudioMode } from '@/types/presets';
  */
 export function AudioPage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask();
+  const { status, progress, error, execute, cancel, reset } = useTask('audio');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);

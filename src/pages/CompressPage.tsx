@@ -24,7 +24,7 @@ import { useT } from '@/i18n';
  * - 按画质等级：1-10 档位滑块
  */
 export function CompressPage() {
-  const { status, progress, error, execute, cancel, reset } = useTask();
+  const { status, progress, error, execute, cancel, reset } = useTask('compress');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);

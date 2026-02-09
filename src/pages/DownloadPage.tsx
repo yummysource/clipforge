@@ -27,7 +27,7 @@ import type { VideoInfo, FormatInfo } from '@/services/download';
  */
 export function DownloadPage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask();
+  const { status, progress, error, execute, cancel, reset } = useTask('download');
   const outputDir = useSettingsStore((s) => s.outputDirectory);
 
   /* URL 输入状态 */
