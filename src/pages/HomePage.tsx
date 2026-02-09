@@ -8,6 +8,7 @@ import {
   Stamp, Maximize2, Clapperboard, Subtitles, Download,
 } from 'lucide-react';
 import { FEATURE_CARDS } from '@/lib/constants';
+import { useT } from '@/i18n';
 
 /**
  * lucide-react 图标名称映射表
@@ -34,6 +35,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
  */
 export function HomePage() {
   const navigate = useNavigate();
+  const t = useT();
 
   return (
     <div className="flex flex-col items-center justify-center h-full px-8 animate-fade-in">
@@ -49,7 +51,7 @@ export function HomePage() {
           className="mt-2"
           style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-md)' }}
         >
-          专业的视频处理工具箱
+          {t('app.subtitle')}
         </p>
       </div>
 
@@ -110,7 +112,7 @@ export function HomePage() {
                 className="font-semibold"
                 style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-text-primary)' }}
               >
-                {card.name}
+                {t(card.nameKey as any)}
               </span>
 
               {/* 功能描述 */}
@@ -118,7 +120,7 @@ export function HomePage() {
                 className="text-center leading-snug"
                 style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}
               >
-                {card.description}
+                {t(card.descKey as any)}
               </span>
             </button>
           );

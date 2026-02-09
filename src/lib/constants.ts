@@ -1,85 +1,87 @@
 /**
  * @file 常量定义
- * @description 定义功能卡片、格式列表、编码器列表、分辨率预设、帧率预设等全局常量
+ * @description 定义功能卡片、格式列表、编码器列表、分辨率预设、帧率预设等全局常量。
+ * 所有用户可见文本通过 i18n 翻译键引用，组件渲染时调用 t() 获取对应语言文本
  */
 import type { ConvertPreset, CompressPreset, ResolutionPreset, FrameRatePreset } from '@/types/presets';
 
 /**
  * 功能卡片配置
- * @description 首页 3x3 网格展示的 9 个功能卡片信息
+ * @description 首页 3x3 网格展示的功能卡片信息
  */
 export interface FeatureCard {
   /** 功能唯一标识，也是路由路径 */
   id: string;
-  /** 功能名称 */
-  name: string;
-  /** 功能简述 */
-  description: string;
+  /** i18n 键前缀（features.{id}），组件中用 t(`features.${id}.name`) 获取翻译 */
+  nameKey: string;
+  /** i18n 键前缀（features.{id}），组件中用 t(`features.${id}.description`) 获取翻译 */
+  descKey: string;
   /** lucide-react 图标名称 */
   icon: string;
 }
 
-/** 9 个功能卡片列表，按首页网格顺序排列 */
+/** 功能卡片列表，按首页网格顺序排列 */
 export const FEATURE_CARDS: FeatureCard[] = [
-  { id: 'convert',   name: '格式转换', description: '转换视频到 MP4/MOV/AVI 等格式',      icon: 'RefreshCw' },
-  { id: 'compress',  name: '视频压缩', description: '智能压缩，保持画质降低体积',          icon: 'Shrink' },
-  { id: 'trim',      name: '裁剪剪切', description: '截取片段、去头去尾',                  icon: 'Scissors' },
-  { id: 'merge',     name: '合并拼接', description: '多个视频合为一个',                    icon: 'Layers' },
-  { id: 'audio',     name: '音频处理', description: '提取音频、替换配音、调节音量',         icon: 'AudioLines' },
-  { id: 'watermark', name: '加水印',   description: '添加图片水印或文字水印',              icon: 'Stamp' },
-  { id: 'resize',    name: '分辨率调整', description: '调整分辨率、帧率、比例',            icon: 'Maximize2' },
-  { id: 'gif',       name: 'GIF 制作',  description: '视频片段转 GIF 动图',               icon: 'Clapperboard' },
-  { id: 'subtitle',  name: '字幕处理', description: '嵌入字幕、提取字幕、调整时间轴',      icon: 'Subtitles' },
-  { id: 'download',  name: '视频下载', description: '从 YouTube/X/Instagram 下载视频',   icon: 'Download' },
+  { id: 'convert',   nameKey: 'features.convert.name',   descKey: 'features.convert.description',   icon: 'RefreshCw' },
+  { id: 'compress',  nameKey: 'features.compress.name',  descKey: 'features.compress.description',  icon: 'Shrink' },
+  { id: 'trim',      nameKey: 'features.trim.name',      descKey: 'features.trim.description',      icon: 'Scissors' },
+  { id: 'merge',     nameKey: 'features.merge.name',     descKey: 'features.merge.description',     icon: 'Layers' },
+  { id: 'audio',     nameKey: 'features.audio.name',     descKey: 'features.audio.description',     icon: 'AudioLines' },
+  { id: 'watermark', nameKey: 'features.watermark.name', descKey: 'features.watermark.description', icon: 'Stamp' },
+  { id: 'resize',    nameKey: 'features.resize.name',    descKey: 'features.resize.description',    icon: 'Maximize2' },
+  { id: 'gif',       nameKey: 'features.gif.name',       descKey: 'features.gif.description',       icon: 'Clapperboard' },
+  { id: 'subtitle',  nameKey: 'features.subtitle.name',  descKey: 'features.subtitle.description',  icon: 'Subtitles' },
+  { id: 'download',  nameKey: 'features.download.name',  descKey: 'features.download.description',  icon: 'Download' },
 ];
 
 /**
  * 支持的视频输出格式列表
+ * @description descKey 对应 i18n 翻译键，组件中用 t(descKey) 获取
  */
 export const VIDEO_FORMATS = [
-  { value: 'mp4',  label: 'MP4',  description: '通用性最强' },
-  { value: 'mkv',  label: 'MKV',  description: '支持多轨道' },
-  { value: 'mov',  label: 'MOV',  description: 'Apple 生态' },
-  { value: 'webm', label: 'WebM', description: '网页优化' },
-  { value: 'avi',  label: 'AVI',  description: '传统格式' },
-  { value: 'ts',   label: 'TS',   description: '流媒体' },
-  { value: 'flv',  label: 'FLV',  description: '直播流' },
+  { value: 'mp4',  label: 'MP4',  descKey: 'formats.mostCompatible' },
+  { value: 'mkv',  label: 'MKV',  descKey: 'formats.multiTrack' },
+  { value: 'mov',  label: 'MOV',  descKey: 'formats.appleEco' },
+  { value: 'webm', label: 'WebM', descKey: 'formats.webOptimized' },
+  { value: 'avi',  label: 'AVI',  descKey: 'formats.traditional' },
+  { value: 'ts',   label: 'TS',   descKey: 'formats.streaming' },
+  { value: 'flv',  label: 'FLV',  descKey: 'formats.liveStream' },
 ] as const;
 
 /**
  * 支持的视频编码器列表
  */
 export const VIDEO_CODECS = [
-  { value: 'libx264',      label: 'H.264',      description: '兼容性最佳' },
-  { value: 'libx265',      label: 'H.265/HEVC', description: '高压缩率' },
-  { value: 'h264_videotoolbox', label: 'H.264 (硬件)', description: 'macOS 硬件加速' },
-  { value: 'hevc_videotoolbox', label: 'HEVC (硬件)',  description: 'macOS 硬件加速' },
-  { value: 'libvpx-vp9',   label: 'VP9',        description: 'WebM 格式' },
-  { value: 'libaom-av1',   label: 'AV1',        description: '新一代编码' },
-  { value: 'copy',         label: '不转码',     description: '直接复制流' },
+  { value: 'libx264',             label: 'H.264',      descKey: 'codecs.bestCompatibility' },
+  { value: 'libx265',             label: 'H.265/HEVC', descKey: 'codecs.highCompression' },
+  { value: 'h264_videotoolbox',   label: 'H.264 (HW)', descKey: 'codecs.hwAccel' },
+  { value: 'hevc_videotoolbox',   label: 'HEVC (HW)',  descKey: 'codecs.hwAccel' },
+  { value: 'libvpx-vp9',          label: 'VP9',        descKey: 'codecs.webmFormat' },
+  { value: 'libaom-av1',          label: 'AV1',        descKey: 'codecs.nextGen' },
+  { value: 'copy',                label: 'Copy',       descKey: 'codecs.noCopy' },
 ] as const;
 
 /**
  * 支持的音频编码器列表
  */
 export const AUDIO_CODECS = [
-  { value: 'aac',          label: 'AAC',   description: '通用' },
-  { value: 'libmp3lame',   label: 'MP3',   description: '传统' },
-  { value: 'libopus',      label: 'Opus',  description: '高质量' },
-  { value: 'flac',         label: 'FLAC',  description: '无损' },
-  { value: 'pcm_s16le',    label: 'WAV',   description: '无压缩' },
-  { value: 'copy',         label: '不转码', description: '直接复制' },
+  { value: 'aac',          label: 'AAC',   descKey: 'codecs.universal' },
+  { value: 'libmp3lame',   label: 'MP3',   descKey: 'codecs.legacy' },
+  { value: 'libopus',      label: 'Opus',  descKey: 'codecs.highQuality' },
+  { value: 'flac',         label: 'FLAC',  descKey: 'codecs.lossless' },
+  { value: 'pcm_s16le',    label: 'WAV',   descKey: 'codecs.uncompressed' },
+  { value: 'copy',         label: 'Copy',  descKey: 'codecs.copyDirect' },
 ] as const;
 
 /**
  * 支持的音频输出格式列表（音频提取时使用）
  */
 export const AUDIO_FORMATS = [
-  { value: 'mp3',  label: 'MP3',  description: '通用有损' },
-  { value: 'aac',  label: 'AAC',  description: '高效有损' },
-  { value: 'wav',  label: 'WAV',  description: '无压缩' },
-  { value: 'flac', label: 'FLAC', description: '无损' },
-  { value: 'ogg',  label: 'OGG',  description: '开源格式' },
+  { value: 'mp3',  label: 'MP3',  descKey: 'codecs.universalLossy' },
+  { value: 'aac',  label: 'AAC',  descKey: 'codecs.efficientLossy' },
+  { value: 'wav',  label: 'WAV',  descKey: 'codecs.uncompressed' },
+  { value: 'flac', label: 'FLAC', descKey: 'codecs.lossless' },
+  { value: 'ogg',  label: 'OGG',  descKey: 'codecs.openSource' },
 ] as const;
 
 /**
@@ -107,12 +109,13 @@ export const FRAME_RATE_PRESETS: FrameRatePreset[] = [
 
 /**
  * 格式转换预设列表
+ * @description nameKey/descKey 对应 i18n 翻译键
  */
-export const CONVERT_PRESETS: ConvertPreset[] = [
+export const CONVERT_PRESETS: (ConvertPreset & { nameKey: string; descKey: string })[] = [
   {
     id: 'social-media',
-    name: '社交媒体',
-    description: 'H.264 MP4，适合微信/抖音/B站',
+    name: '', nameKey: 'presets.socialMedia', descKey: 'presets.socialMediaDesc',
+    description: '',
     outputFormat: 'mp4',
     videoCodec: 'libx264',
     audioCodec: 'aac',
@@ -121,8 +124,8 @@ export const CONVERT_PRESETS: ConvertPreset[] = [
   },
   {
     id: 'web-optimized',
-    name: '网页优化',
-    description: '小体积 MP4，适合网页嵌入',
+    name: '', nameKey: 'presets.webOptimized', descKey: 'presets.webOptimizedDesc',
+    description: '',
     outputFormat: 'mp4',
     videoCodec: 'libx264',
     audioCodec: 'aac',
@@ -131,8 +134,8 @@ export const CONVERT_PRESETS: ConvertPreset[] = [
   },
   {
     id: 'high-quality',
-    name: '高质量存档',
-    description: 'H.265 MKV，高质量低空间',
+    name: '', nameKey: 'presets.highQuality', descKey: 'presets.highQualityDesc',
+    description: '',
     outputFormat: 'mkv',
     videoCodec: 'libx265',
     audioCodec: 'aac',
@@ -141,8 +144,8 @@ export const CONVERT_PRESETS: ConvertPreset[] = [
   },
   {
     id: 'apple-ecosystem',
-    name: 'Apple 生态',
-    description: 'MOV 格式，适合 Final Cut / iMovie',
+    name: '', nameKey: 'presets.appleEcosystem', descKey: 'presets.appleEcosystemDesc',
+    description: '',
     outputFormat: 'mov',
     videoCodec: 'libx264',
     audioCodec: 'aac',
@@ -151,8 +154,8 @@ export const CONVERT_PRESETS: ConvertPreset[] = [
   },
   {
     id: 'lossless-copy',
-    name: '无损转封装',
-    description: '不重新编码，仅改变容器格式',
+    name: '', nameKey: 'presets.losslessCopy', descKey: 'presets.losslessCopyDesc',
+    description: '',
     outputFormat: 'mp4',
     videoCodec: 'copy',
     audioCodec: 'copy',
@@ -164,11 +167,11 @@ export const CONVERT_PRESETS: ConvertPreset[] = [
 /**
  * 压缩预设列表
  */
-export const COMPRESS_PRESETS: CompressPreset[] = [
+export const COMPRESS_PRESETS: (CompressPreset & { nameKey: string; descKey: string })[] = [
   {
     id: 'light',
-    name: '轻度压缩',
-    description: '保持高画质，体积减少约 30%',
+    name: '', nameKey: 'presets.lightCompress', descKey: 'presets.lightCompressDesc',
+    description: '',
     mode: 'byQuality',
     targetSizeMb: null,
     compressRatio: null,
@@ -176,8 +179,8 @@ export const COMPRESS_PRESETS: CompressPreset[] = [
   },
   {
     id: 'moderate',
-    name: '中度压缩',
-    description: '画质与体积平衡，减少约 50%',
+    name: '', nameKey: 'presets.moderateCompress', descKey: 'presets.moderateCompressDesc',
+    description: '',
     mode: 'byQuality',
     targetSizeMb: null,
     compressRatio: null,
@@ -185,8 +188,8 @@ export const COMPRESS_PRESETS: CompressPreset[] = [
   },
   {
     id: 'heavy',
-    name: '重度压缩',
-    description: '大幅减小体积，画质有损',
+    name: '', nameKey: 'presets.heavyCompress', descKey: 'presets.heavyCompressDesc',
+    description: '',
     mode: 'byQuality',
     targetSizeMb: null,
     compressRatio: null,
@@ -220,18 +223,18 @@ export const SUBTITLE_EXTENSIONS = [
  * 缩放算法列表
  */
 export const SCALE_ALGORITHMS = [
-  { value: 'lanczos',   label: 'Lanczos',   description: '高质量（推荐）' },
-  { value: 'bicubic',   label: 'Bicubic',   description: '平衡' },
-  { value: 'bilinear',  label: 'Bilinear',  description: '快速' },
-  { value: 'neighbor',  label: 'Nearest',   description: '像素风格' },
+  { value: 'lanczos',   label: 'Lanczos',   descKey: 'scaleAlgorithms.lanczos' },
+  { value: 'bicubic',   label: 'Bicubic',   descKey: 'scaleAlgorithms.bicubic' },
+  { value: 'bilinear',  label: 'Bilinear',  descKey: 'scaleAlgorithms.bilinear' },
+  { value: 'neighbor',  label: 'Nearest',   descKey: 'scaleAlgorithms.nearest' },
 ] as const;
 
 /**
  * GIF 抖动算法列表
  */
 export const GIF_DITHER_ALGORITHMS = [
-  { value: 'floyd_steinberg', label: 'Floyd-Steinberg', description: '默认，效果好' },
-  { value: 'sierra2_4a',      label: 'Sierra',          description: '更快' },
-  { value: 'bayer',           label: 'Bayer',           description: '规则图案' },
-  { value: 'none',            label: '无抖动',          description: '色块风格' },
+  { value: 'floyd_steinberg', label: 'Floyd-Steinberg', descKey: 'ditherAlgorithms.floydSteinberg' },
+  { value: 'sierra2_4a',      label: 'Sierra',          descKey: 'ditherAlgorithms.sierra' },
+  { value: 'bayer',           label: 'Bayer',           descKey: 'ditherAlgorithms.bayer' },
+  { value: 'none',            label: 'None',            descKey: 'ditherAlgorithms.noDither' },
 ] as const;

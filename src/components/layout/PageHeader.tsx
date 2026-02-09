@@ -4,6 +4,7 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useT } from '@/i18n';
 
 /** PageHeader 组件 Props */
 interface PageHeaderProps {
@@ -23,6 +24,7 @@ interface PageHeaderProps {
  */
 export function PageHeader({ title, description }: PageHeaderProps) {
   const navigate = useNavigate();
+  const t = useT();
 
   return (
     <div className="shrink-0 px-6 py-4" style={{ borderBottom: '1px solid var(--color-divider)' }}>
@@ -40,7 +42,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
           }}
         >
           <ArrowLeft size={16} />
-          <span>首页</span>
+          <span>{t('layout.home')}</span>
         </button>
         <span className="text-sm" style={{ color: 'var(--color-text-placeholder)' }}>/</span>
         <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{title}</span>

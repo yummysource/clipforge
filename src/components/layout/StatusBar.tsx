@@ -4,6 +4,7 @@
  */
 import { useAppStore } from '@/stores/useAppStore';
 import { useTaskStore } from '@/stores/useTaskStore';
+import { useT } from '@/i18n';
 
 /**
  * 底部状态栏
@@ -16,6 +17,7 @@ import { useTaskStore } from '@/stores/useTaskStore';
 export function StatusBar() {
   const ffmpegVersion = useAppStore((s) => s.ffmpegVersion);
   const runningCount = useTaskStore((s) => s.getRunningCount());
+  const t = useT();
 
   return (
     <footer
@@ -35,17 +37,17 @@ export function StatusBar() {
 
       {/* 中间：提示 */}
       <div>
-        拖拽文件到卡片上可快速开始
+        {t('layout.dragToStart')}
       </div>
 
       {/* 右侧：任务数量 */}
       <div className="flex items-center gap-1">
         {runningCount > 0 ? (
           <span style={{ color: 'var(--color-accent)' }}>
-            {runningCount} 个任务进行中
+            {t('layout.tasksRunning', { count: runningCount })}
           </span>
         ) : (
-          <span>无活跃任务</span>
+          <span>{t('layout.noActiveTasks')}</span>
         )}
       </div>
     </footer>

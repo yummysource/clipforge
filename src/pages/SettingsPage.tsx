@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { selectDirectory } from '@/services/files';
+import { useT } from '@/i18n';
 
 /**
  * 开关控件
@@ -81,9 +82,11 @@ function SectionTitle({ title, className = '' }: { title: string; className?: st
  * - 输出文件后缀和覆盖策略
  * - 硬件加速和并发数
  * - 通知和自动打开目录
+ * - 语言切换
  */
 export function SettingsPage() {
   const settings = useSettingsStore();
+  const t = useT();
 
   /** 输出目录是否使用源文件同目录（outputDirectory 为空即表示同源目录） */
   const isSameAsSource = !settings.outputDirectory;
@@ -112,16 +115,16 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col h-full animate-slide-in-right">
-      <PageHeader title="设置" />
+      <PageHeader title={t('settings.title')} />
 
       <div className="flex-1 overflow-y-auto p-6" style={{ maxWidth: '640px' }}>
         {/* ── 输出设置 ── */}
-        <SectionTitle title="输出设置" />
+        <SectionTitle title={t('settings.output')} />
 
         {/* 同源目录开关 */}
         <SettingRow
-          label="默认输出目录同源目录"
-          desc="开启后输出文件保存到源文件所在目录"
+          label={t('settings.sameAsSource')}
+          desc={t('settings.sameAsSourceDesc')}
           control={
             <SettingSwitch
               value={isSameAsSource}
@@ -133,7 +136,7 @@ export function SettingsPage() {
         {/* 自定义输出目录（仅在关闭同源目录时显示） */}
         {!isSameAsSource && (
           <SettingRow
-            label="输出目录"
+            label={t('settings.outputDirectory')}
             desc={settings.outputDirectory}
             control={
               <button
@@ -145,15 +148,15 @@ export function SettingsPage() {
                   color: 'var(--color-accent)',
                 }}
               >
-                选择目录
+                {t('settings.selectDirectory')}
               </button>
             }
           />
         )}
 
         <SettingRow
-          label="输出文件后缀"
-          desc={`输出文件名添加后缀（当前: "${settings.outputSuffix}"）`}
+          label={t('settings.outputSuffix')}
+          desc={t('settings.outputSuffixDesc', { suffix: settings.outputSuffix })}
           control={
             <input
               type="text"
@@ -170,8 +173,8 @@ export function SettingsPage() {
         />
 
         <SettingRow
-          label="自动覆盖已有文件"
-          desc="输出路径存在同名文件时自动覆盖"
+          label={t('settings.overwriteExisting')}
+          desc={t('settings.overwriteExistingDesc')}
           control={
             <SettingSwitch
               value={settings.overwriteExisting}
@@ -181,11 +184,11 @@ export function SettingsPage() {
         />
 
         {/* ── 性能设置 ── */}
-        <SectionTitle title="性能设置" className="mt-8" />
+        <SectionTitle title={t('settings.performance')} className="mt-8" />
 
         <SettingRow
-          label="硬件加速"
-          desc="使用 macOS VideoToolbox 加速编解码"
+          label={t('settings.hardwareAccel')}
+          desc={t('settings.hardwareAccelDesc')}
           control={
             <SettingSwitch
               value={settings.hardwareAccel}
@@ -195,8 +198,8 @@ export function SettingsPage() {
         />
 
         <SettingRow
-          label="最大并发任务"
-          desc={`同时处理的最大任务数量（当前: ${settings.maxConcurrent}）`}
+          label={t('settings.maxConcurrent')}
+          desc={t('settings.maxConcurrentDesc', { count: settings.maxConcurrent })}
           control={
             <select
               value={settings.maxConcurrent}
@@ -216,11 +219,11 @@ export function SettingsPage() {
         />
 
         {/* ── 通知设置 ── */}
-        <SectionTitle title="通知设置" className="mt-8" />
+        <SectionTitle title={t('settings.notifications')} className="mt-8" />
 
         <SettingRow
-          label="完成通知"
-          desc="处理完成后发送系统通知"
+          label={t('settings.notifyOnComplete')}
+          desc={t('settings.notifyOnCompleteDesc')}
           control={
             <SettingSwitch
               value={settings.notifyOnComplete}
@@ -230,13 +233,35 @@ export function SettingsPage() {
         />
 
         <SettingRow
-          label="自动打开目录"
-          desc="处理完成后自动打开输出文件所在目录"
+          label={t('settings.openOnComplete')}
+          desc={t('settings.openOnCompleteDesc')}
           control={
             <SettingSwitch
               value={settings.openOnComplete}
               onChange={(v) => settings.updateSetting('openOnComplete', v)}
             />
+          }
+        />
+
+        {/* ── 语言设置 ── */}
+        <SectionTitle title={t('settings.language')} className="mt-8" />
+        <SettingRow
+          label={t('settings.language')}
+          desc={t('settings.languageDesc')}
+          control={
+            <select
+              value={settings.language}
+              onChange={(e) => settings.updateSetting('language', e.target.value)}
+              className="px-2 py-1 rounded-md text-sm"
+              style={{
+                backgroundColor: 'var(--color-bg-tertiary)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+            </select>
           }
         />
 
@@ -247,7 +272,7 @@ export function SettingsPage() {
             className="px-4 py-2 rounded-lg text-sm cursor-pointer"
             style={{ color: 'var(--color-error)', border: '1px solid var(--color-error)' }}
           >
-            恢复默认设置
+            {t('settings.resetDefaults')}
           </button>
         </div>
       </div>

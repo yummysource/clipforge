@@ -4,6 +4,7 @@
  */
 import type { MediaInfo } from '@/types/media';
 import { formatFileSize, formatDuration, formatBitrate } from '@/lib/format';
+import { useT } from '@/i18n';
 
 /** FileInfo 组件 Props */
 interface FileInfoProps {
@@ -21,6 +22,8 @@ interface FileInfoProps {
  * @param props - 媒体信息数据
  */
 export function FileInfo({ mediaInfo, className }: FileInfoProps) {
+  const t = useT();
+
   if (!mediaInfo) {
     return (
       <div
@@ -31,7 +34,7 @@ export function FileInfo({ mediaInfo, className }: FileInfoProps) {
         }}
       >
         <p style={{ color: 'var(--color-text-placeholder)', fontSize: 'var(--font-size-sm)' }}>
-          选择文件以查看信息
+          {t('file.selectFileToView')}
         </p>
       </div>
     );
@@ -42,33 +45,38 @@ export function FileInfo({ mediaInfo, className }: FileInfoProps) {
 
   /** 信息条目 */
   const items: Array<{ label: string; value: string }> = [
-    { label: '文件名', value: mediaInfo.fileName },
-    { label: '大小', value: formatFileSize(mediaInfo.fileSize) },
-    { label: '时长', value: formatDuration(mediaInfo.duration) },
-    { label: '格式', value: mediaInfo.formatName.split(',')[0].toUpperCase() },
+    { label: t('file.fileName'), value: mediaInfo.fileName },
+    { label: t('file.fileSize'), value: formatFileSize(mediaInfo.fileSize) },
+    { label: t('file.duration'), value: formatDuration(mediaInfo.duration) },
+    { label: t('file.format'), value: mediaInfo.formatName.split(',')[0].toUpperCase() },
   ];
 
   if (video) {
     items.push(
-      { label: '分辨率', value: `${video.width}x${video.height}` },
-      { label: '帧率', value: `${video.frameRate.toFixed(1)} fps` },
-      { label: '视频编码', value: video.codecName.toUpperCase() },
+      { label: t('file.resolution'), value: `${video.width}x${video.height}` },
+      { label: t('file.frameRate'), value: `${video.frameRate.toFixed(1)} fps` },
+      { label: t('file.videoCodec'), value: video.codecName.toUpperCase() },
     );
     if (video.bitrate) {
-      items.push({ label: '视频码率', value: formatBitrate(video.bitrate) });
+      items.push({ label: t('file.videoBitrate'), value: formatBitrate(video.bitrate) });
     }
   }
 
   if (audio) {
     items.push(
-      { label: '音频编码', value: audio.codecName.toUpperCase() },
-      { label: '采样率', value: `${audio.sampleRate} Hz` },
-      { label: '声道', value: audio.channels === 1 ? '单声道' : `${audio.channels} 声道` },
+      { label: t('file.audioCodec'), value: audio.codecName.toUpperCase() },
+      { label: t('file.sampleRate'), value: `${audio.sampleRate} Hz` },
+      {
+        label: t('file.channels'),
+        value: audio.channels === 1
+          ? t('file.mono')
+          : t('file.channelsCount', { count: audio.channels }),
+      },
     );
   }
 
   if (mediaInfo.bitrate) {
-    items.push({ label: '总码率', value: formatBitrate(mediaInfo.bitrate) });
+    items.push({ label: t('file.totalBitrate'), value: formatBitrate(mediaInfo.bitrate) });
   }
 
   return (
@@ -83,7 +91,7 @@ export function FileInfo({ mediaInfo, className }: FileInfoProps) {
         className="font-medium mb-3"
         style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
       >
-        文件信息
+        {t('file.fileInfo')}
       </h3>
 
       <div className="flex flex-col gap-2">

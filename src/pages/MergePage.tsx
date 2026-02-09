@@ -11,6 +11,7 @@ import { mergeVideos } from '@/services/ffmpeg';
 import { formatDuration, generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
 import { GripVertical, X } from 'lucide-react';
+import { useT } from '@/i18n';
 
 /**
  * 合并拼接页面组件
@@ -22,6 +23,7 @@ import { GripVertical, X } from 'lucide-react';
  * - 预览时间轴按比例显示各片段
  */
 export function MergePage() {
+  const t = useT();
   const { status, progress, error, execute, cancel, reset } = useTask();
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
@@ -75,8 +77,8 @@ export function MergePage() {
 
   return (
     <FeatureLayout
-      title="合并拼接"
-      description="多个视频合为一个"
+      title={t('features.merge.name')}
+      description={t('features.merge.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
@@ -84,7 +86,7 @@ export function MergePage() {
       onCancel={cancel}
       onReset={handleReset}
       startDisabled={files.length < 2}
-      startLabel={`合并 ${files.length} 个文件`}
+      startLabel={t('merge.mergeFiles', { count: files.length })}
     >
       {/* 排序列表 */}
       <div className="mb-6">
@@ -92,7 +94,7 @@ export function MergePage() {
           className="block mb-2 font-medium"
           style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
         >
-          拖拽排列视频顺序
+          {t('merge.dragToReorder')}
         </label>
 
         <div className="flex flex-col gap-1">
@@ -141,7 +143,7 @@ export function MergePage() {
                   className="px-1 text-xs cursor-pointer disabled:opacity-30"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  上移
+                  {t('merge.moveUp')}
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); moveDown(index); }}
@@ -149,7 +151,7 @@ export function MergePage() {
                   className="px-1 text-xs cursor-pointer disabled:opacity-30"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  下移
+                  {t('merge.moveDown')}
                 </button>
               </div>
 
@@ -166,7 +168,7 @@ export function MergePage() {
         </div>
 
         <p className="mt-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-          总时长: {formatDuration(totalDuration)}
+          {t('merge.totalDuration', { value: formatDuration(totalDuration) })}
         </p>
       </div>
 
@@ -176,7 +178,7 @@ export function MergePage() {
           className="block mb-2 font-medium"
           style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
         >
-          转场效果
+          {t('merge.transition')}
         </label>
         <select
           value={transitionType}
@@ -189,10 +191,10 @@ export function MergePage() {
             fontSize: 'var(--font-size-sm)',
           }}
         >
-          <option value="none">无转场</option>
-          <option value="fade">淡入淡出</option>
-          <option value="wipeleft">左划过渡</option>
-          <option value="dissolve">溶解过渡</option>
+          <option value="none">{t('merge.transitionNone')}</option>
+          <option value="fade">{t('merge.transitionFade')}</option>
+          <option value="wipeleft">{t('merge.transitionWipe')}</option>
+          <option value="dissolve">{t('merge.transitionDissolve')}</option>
         </select>
       </div>
 
@@ -202,7 +204,7 @@ export function MergePage() {
             className="block mb-2"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            转场时长: {transitionDuration}s
+            {t('merge.transitionDuration', { value: transitionDuration })}
           </label>
           <input
             type="range"
@@ -221,10 +223,10 @@ export function MergePage() {
       <div className="flex items-center justify-between">
         <div>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-            统一分辨率/帧率
+            {t('merge.normalize')}
           </p>
           <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-            自动将所有视频调整为一致的分辨率和帧率
+            {t('merge.normalizeDesc')}
           </p>
         </div>
         <button

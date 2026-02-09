@@ -35,6 +35,7 @@ function extractSettings(state: SettingsStoreState): AppSettings {
     openOnComplete: state.openOnComplete,
     outputSuffix: state.outputSuffix,
     overwriteExisting: state.overwriteExisting,
+    language: state.language,
   };
 }
 

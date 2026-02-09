@@ -11,6 +11,7 @@ import { processSubtitle } from '@/services/ffmpeg';
 import { openSubtitleFile } from '@/services/files';
 import { generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
+import { useT } from '@/i18n';
 import type { SubtitleMode } from '@/types/presets';
 
 /**
@@ -22,6 +23,7 @@ import type { SubtitleMode } from '@/types/presets';
  * - 烧录字幕：将字幕硬编码到视频画面（硬字幕）
  */
 export function SubtitlePage() {
+  const t = useT();
   const { status, progress, error, execute, cancel, reset } = useTask();
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
@@ -69,17 +71,17 @@ export function SubtitlePage() {
     clearFiles();
   }, [reset, clearFiles]);
 
-  /** 模式选项 */
+  /** 模式选项 — 需在 hook 之后定义，以使用 t() 翻译 */
   const modeOptions: Array<{ value: SubtitleMode; label: string; desc: string }> = [
-    { value: 'embed', label: '嵌入字幕', desc: '软字幕' },
-    { value: 'extract', label: '提取字幕', desc: '导出文件' },
-    { value: 'burnIn', label: '烧录字幕', desc: '硬字幕' },
+    { value: 'embed', label: t('subtitle.embed'), desc: t('subtitle.embedDesc') },
+    { value: 'extract', label: t('subtitle.extract'), desc: t('subtitle.extractDesc') },
+    { value: 'burnIn', label: t('subtitle.burnIn'), desc: t('subtitle.burnInDesc') },
   ];
 
   return (
     <FeatureLayout
-      title="字幕处理"
-      description="嵌入字幕、提取字幕、调整时间轴"
+      title={t('features.subtitle.name')}
+      description={t('features.subtitle.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
@@ -90,7 +92,7 @@ export function SubtitlePage() {
       {/* 模式选择 */}
       <div className="mb-6">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          处理模式
+          {t('subtitle.mode')}
         </label>
         <div className="grid grid-cols-3 gap-2">
           {modeOptions.map((opt) => (
@@ -111,7 +113,7 @@ export function SubtitlePage() {
       {/* 嵌入/烧录模式 — 字幕文件选择 */}
       {(mode === 'embed' || mode === 'burnIn') && (
         <div className="mb-4">
-          <label className="block mb-1 text-sm" style={{ color: 'var(--color-text-primary)' }}>字幕文件</label>
+          <label className="block mb-1 text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('subtitle.subtitleFile')}</label>
           <button onClick={handleSelectSubtitle}
             className="w-full px-4 py-3 rounded-lg border-2 border-dashed text-sm cursor-pointer"
             style={{
@@ -119,7 +121,7 @@ export function SubtitlePage() {
               color: subtitlePath ? 'var(--color-text-primary)' : 'var(--color-text-placeholder)',
               backgroundColor: 'var(--color-bg-tertiary)',
             }}>
-            {subtitlePath ? subtitlePath.split('/').pop() : '点击选择 .srt / .ass / .vtt 文件...'}
+            {subtitlePath ? subtitlePath.split('/').pop() : t('subtitle.clickSelectSubtitle')}
           </button>
         </div>
       )}
@@ -128,7 +130,7 @@ export function SubtitlePage() {
       {mode === 'extract' && (
         <div className="mb-4">
           <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-            输出格式
+            {t('subtitle.outputFormat')}
           </label>
           <div className="flex gap-2">
             {['srt', 'ass', 'vtt'].map((fmt) => (
@@ -151,18 +153,18 @@ export function SubtitlePage() {
       {mode === 'burnIn' && (
         <div className="flex flex-col gap-4 mt-4 p-4 rounded-xl"
           style={{ backgroundColor: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)' }}>
-          <h4 className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>字幕样式</h4>
+          <h4 className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('subtitle.subtitleStyle')}</h4>
 
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>字号</label>
+              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>{t('subtitle.fontSize')}</label>
               <input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))}
                 min={12} max={120}
                 className="w-full px-3 py-1.5 rounded-lg text-sm"
                 style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }} />
             </div>
             <div className="flex-1">
-              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>颜色</label>
+              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>{t('subtitle.fontColor')}</label>
               <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)}
                 className="w-full h-8 rounded-lg cursor-pointer" />
             </div>
@@ -170,14 +172,14 @@ export function SubtitlePage() {
 
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>描边宽度</label>
+              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>{t('subtitle.outlineWidth')}</label>
               <input type="number" value={outlineWidth} onChange={(e) => setOutlineWidth(Number(e.target.value))}
                 min={0} max={10}
                 className="w-full px-3 py-1.5 rounded-lg text-sm"
                 style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }} />
             </div>
             <div className="flex-1">
-              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>底部边距</label>
+              <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>{t('subtitle.marginBottom')}</label>
               <input type="number" value={marginV} onChange={(e) => setMarginV(Number(e.target.value))}
                 min={0} max={200}
                 className="w-full px-3 py-1.5 rounded-lg text-sm"

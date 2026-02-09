@@ -4,6 +4,7 @@
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { formatTimecode, parseTimecode, formatDuration } from '@/lib/format';
+import { useT } from '@/i18n';
 
 /** 时间片段 */
 export interface TimeSegment {
@@ -88,6 +89,8 @@ export function TimelineSelector({
   multiSegment = false,
   className,
 }: TimelineSelectorProps) {
+  const t = useT();
+
   /** 当前正在编辑的片段索引 */
   const [activeIndex, setActiveIndex] = useState(0);
   /** 当前拖拽类型 */
@@ -466,7 +469,7 @@ export function TimelineSelector({
             className="shrink-0"
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
-            入点
+            {t('timeline.inPoint')}
           </label>
           <input
             type="text"
@@ -491,7 +494,7 @@ export function TimelineSelector({
             className="shrink-0"
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
-            出点
+            {t('timeline.outPoint')}
           </label>
           <input
             type="text"
@@ -519,7 +522,7 @@ export function TimelineSelector({
             backgroundColor: 'var(--color-accent-light)',
           }}
         >
-          时长: {formatTimecode(Math.max(0, activeSegment.end - activeSegment.start))}
+          {t('timeline.duration')}: {formatTimecode(Math.max(0, activeSegment.end - activeSegment.start))}
         </span>
       </div>
 
@@ -528,7 +531,7 @@ export function TimelineSelector({
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
             <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-              已选 {segments.length} 个片段
+              {t('timeline.segmentsSelected', { count: segments.length })}
             </span>
             <button
               onClick={addSegment}
@@ -539,7 +542,7 @@ export function TimelineSelector({
                 backgroundColor: 'transparent',
               }}
             >
-              + 添加片段
+              {t('timeline.addSegment')}
             </button>
           </div>
 
@@ -566,7 +569,7 @@ export function TimelineSelector({
                     className="text-xs px-2 py-0.5 rounded cursor-pointer transition-colors"
                     style={{ color: 'var(--color-error)' }}
                   >
-                    删除
+                    {t('common.delete')}
                   </button>
                 )}
               </div>

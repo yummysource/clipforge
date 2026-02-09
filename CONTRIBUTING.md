@@ -1,85 +1,85 @@
 # Contributing to ClipForge
 
-感谢你对 ClipForge 的关注！欢迎任何形式的贡献。
+Thank you for your interest in ClipForge! Contributions of any kind are welcome.
 
-## 如何参与
+## How to Contribute
 
-### 报告 Bug
+### Report Bugs
 
-在 [Issues](https://github.com/yummysource/clipforge/issues) 中创建 Bug Report，请包含：
+Create a Bug Report in [Issues](https://github.com/yummysource/clipforge/issues). Please include:
 
-- 操作系统版本（如 macOS 15.2）
-- ClipForge 版本
-- 复现步骤
-- 预期行为 vs 实际行为
-- 错误截图或日志
+- OS version (e.g. macOS 15.2)
+- ClipForge version
+- Steps to reproduce
+- Expected behavior vs actual behavior
+- Screenshots or logs
 
-### 功能建议
+### Feature Requests
 
-同样在 Issues 中创建 Feature Request，描述：
+Create a Feature Request in Issues, describing:
 
-- 你想要什么功能
-- 使用场景是什么
-- 是否有类似工具的参考
+- What feature you'd like
+- Your use case
+- Any reference to similar tools
 
-### 提交代码
+### Submit Code
 
-1. Fork 本仓库
-2. 创建功能分支：`git checkout -b feat/your-feature`
-3. 提交更改：`git commit -m "feat: 添加某功能"`
-4. 推送分支：`git push origin feat/your-feature`
-5. 创建 Pull Request
+1. Fork this repository
+2. Create a feature branch: `git checkout -b feat/your-feature`
+3. Commit your changes: `git commit -m "feat: add some feature"`
+4. Push the branch: `git push origin feat/your-feature`
+5. Create a Pull Request
 
-### Commit 规范
+### Commit Convention
 
-使用 [Conventional Commits](https://www.conventionalcommits.org/) 格式：
+Use [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-- `feat:` 新功能
-- `fix:` Bug 修复
-- `docs:` 文档更新
-- `refactor:` 代码重构
-- `style:` 代码格式（不影响逻辑）
-- `chore:` 构建/工具链变更
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation update
+- `refactor:` Code refactoring
+- `style:` Code formatting (no logic change)
+- `chore:` Build/toolchain changes
 
-## 开发环境
+## Development Environment
 
-### 前置条件
+### Prerequisites
 
 - Node.js >= 18
 - Rust >= 1.70
-- FFmpeg / FFprobe（放置到 `src-tauri/` 作为 sidecar）
-- yt-dlp（放置到 `src-tauri/` 作为 sidecar）
+- FFmpeg / FFprobe (place in `src-tauri/` as sidecar)
+- yt-dlp (place in `src-tauri/` as sidecar)
 
-### 启动开发
+### Getting Started
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动开发服务器（前端 + Tauri）
+# Start dev server (frontend + Tauri)
 npm run tauri dev
 
-# 仅启动前端
+# Frontend only
 npm run dev
 
-# 类型检查
+# Type check
 npm run typecheck
 ```
 
-### 项目结构
+### Project Structure
 
-- `src/` — React 前端（TypeScript + Tailwind CSS）
-- `src-tauri/src/` — Rust 后端（Tauri 2）
-- `src-tauri/src/commands/` — Tauri IPC 命令
-- `src-tauri/src/engine/` — FFmpeg 进程管理
+- `src/` — React frontend (TypeScript + Tailwind CSS)
+- `src-tauri/src/` — Rust backend (Tauri 2)
+- `src-tauri/src/commands/` — Tauri IPC commands
+- `src-tauri/src/engine/` — FFmpeg process management
 
-## 代码风格
+## Code Style
 
-- 前端遵循 TypeScript strict 模式
-- 所有公开函数和组件需要 JSDoc 注释
-- CSS 使用 Tailwind + CSS 变量
-- Rust 代码遵循标准 `cargo fmt` 格式
+- Frontend follows TypeScript strict mode
+- All public functions and components require JSDoc comments
+- CSS uses Tailwind + CSS variables
+- Rust code follows standard `cargo fmt` formatting
 
-## 许可证
+## License
 
-提交贡献即表示你同意将代码以 [MIT License](LICENSE) 发布。
+By submitting a contribution, you agree to release your code under the [MIT License](LICENSE).

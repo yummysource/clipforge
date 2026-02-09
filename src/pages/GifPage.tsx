@@ -12,6 +12,7 @@ import { createGif } from '@/services/ffmpeg';
 import { FRAME_RATE_PRESETS, GIF_DITHER_ALGORITHMS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
+import { useT } from '@/i18n';
 
 /**
  * GIF 制作页面组件
@@ -24,6 +25,7 @@ import { buildOutputPath } from '@/lib/output';
  * - 预估文件大小
  */
 export function GifPage() {
+  const t = useT();
   const { status, progress, error, execute, cancel, reset } = useTask();
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
@@ -76,15 +78,15 @@ export function GifPage() {
 
   return (
     <FeatureLayout
-      title="GIF 制作"
-      description="视频片段转 GIF 动图"
+      title={t('features.gif.name')}
+      description={t('features.gif.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
       onStart={handleStart}
       onCancel={cancel}
       onReset={handleReset}
-      startLabel="生成 GIF"
+      startLabel={t('gif.generateGif')}
     >
       {/* 时间轴选择器 */}
       <TimelineSelector
@@ -97,7 +99,7 @@ export function GifPage() {
       {/* GIF 宽度 */}
       <div className="mb-4">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          输出宽度: {gifWidth}px
+          {t('gif.outputWidth', { value: gifWidth })}
         </label>
         <input type="range" min={120} max={1280} step={10} value={gifWidth}
           onChange={(e) => setGifWidth(Number(e.target.value))}
@@ -111,7 +113,7 @@ export function GifPage() {
       {/* 帧率选择 */}
       <div className="mb-4">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          帧率
+          {t('gif.fps')}
         </label>
         <div className="flex flex-wrap gap-2">
           {FRAME_RATE_PRESETS.filter((p) => p.value <= 30).map((preset) => (
@@ -132,20 +134,20 @@ export function GifPage() {
       {/* 抖动算法 */}
       <div className="mb-4">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          抖动算法
+          {t('gif.ditherAlgorithm')}
         </label>
         <select value={dither} onChange={(e) => setDither(e.target.value)}
           className="w-full px-3 py-2 rounded-lg"
           style={{ backgroundColor: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)' }}>
           {GIF_DITHER_ALGORITHMS.map((a) => (
-            <option key={a.value} value={a.value}>{a.label} - {a.description}</option>
+            <option key={a.value} value={a.value}>{a.label} - {t(a.descKey as any)}</option>
           ))}
         </select>
       </div>
 
       {/* 循环设置 */}
       <div className="flex items-center justify-between mb-6">
-        <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>无限循环</span>
+        <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('gif.infiniteLoop')}</span>
         <button
           onClick={() => setLoopCount(loopCount === 0 ? -1 : 0)}
           className="relative w-10 h-6 rounded-full transition-colors cursor-pointer"
@@ -163,7 +165,7 @@ export function GifPage() {
 
       {/* 预估信息 */}
       <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-        <p>GIF 时长: {gifDuration.toFixed(1)} 秒 | 帧数: ~{Math.ceil(gifDuration * gifFps)} 帧</p>
+        <p>{t('gif.gifInfo', { duration: gifDuration.toFixed(1), frames: Math.ceil(gifDuration * gifFps) })}</p>
       </div>
     </FeatureLayout>
   );

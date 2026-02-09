@@ -12,6 +12,7 @@ import { convertVideo } from '@/services/ffmpeg';
 import { CONVERT_PRESETS, VIDEO_FORMATS, VIDEO_CODECS, AUDIO_CODECS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
+import { useT } from '@/i18n';
 
 /**
  * 格式转换页面组件
@@ -29,6 +30,7 @@ export function ConvertPage() {
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
   const outputSuffix = useSettingsStore((s) => s.outputSuffix);
+  const t = useT();
 
   /* 参数状态 */
   const [presetId, setPresetId] = useState(CONVERT_PRESETS[0].id);
@@ -76,8 +78,8 @@ export function ConvertPage() {
 
   return (
     <FeatureLayout
-      title="格式转换"
-      description="转换视频到 MP4/MOV/AVI 等格式"
+      title={t('features.convert.name')}
+      description={t('features.convert.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
@@ -99,7 +101,7 @@ export function ConvertPage() {
           className="block mb-2 font-medium"
           style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
         >
-          输出格式
+          {t('convert.outputFormat')}
         </label>
         <select
           value={outputFormat}
@@ -114,7 +116,7 @@ export function ConvertPage() {
         >
           {VIDEO_FORMATS.map((f) => (
             <option key={f.value} value={f.value}>
-              {f.label} - {f.description}
+              {f.label} - {t(f.descKey as any)}
             </option>
           ))}
         </select>
@@ -126,7 +128,7 @@ export function ConvertPage() {
           className="block mb-2 font-medium"
           style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
         >
-          视频编码
+          {t('convert.videoCodec')}
         </label>
         <select
           value={videoCodec}
@@ -141,7 +143,7 @@ export function ConvertPage() {
         >
           {VIDEO_CODECS.map((c) => (
             <option key={c.value} value={c.value}>
-              {c.label} - {c.description}
+              {c.label} - {t(c.descKey as any)}
             </option>
           ))}
         </select>
@@ -154,7 +156,7 @@ export function ConvertPage() {
             className="block mb-2 font-medium"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            画质级别 (CRF: {quality})
+            {t('convert.qualityLevel', { value: quality })}
           </label>
           <input
             type="range"
@@ -169,8 +171,8 @@ export function ConvertPage() {
             className="flex justify-between mt-1"
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
-            <span>极高画质</span>
-            <span>极低画质</span>
+            <span>{t('convert.highQuality')}</span>
+            <span>{t('convert.lowQuality')}</span>
           </div>
         </div>
       )}
@@ -181,7 +183,7 @@ export function ConvertPage() {
         className="flex items-center gap-1 mb-3 cursor-pointer"
         style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-accent)' }}
       >
-        <span>{showAdvanced ? '收起' : '展开'}高级选项</span>
+        <span>{t('convert.advancedToggle', { action: showAdvanced ? t('convert.collapse') : t('convert.expand') })}</span>
       </button>
 
       {showAdvanced && (
@@ -195,7 +197,7 @@ export function ConvertPage() {
               className="block mb-2 font-medium"
               style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
             >
-              音频编码
+              {t('convert.audioCodec')}
             </label>
             <select
               value={audioCodec}
@@ -210,7 +212,7 @@ export function ConvertPage() {
             >
               {AUDIO_CODECS.map((c) => (
                 <option key={c.value} value={c.value}>
-                  {c.label} - {c.description}
+                  {c.label} - {t(c.descKey as any)}
                 </option>
               ))}
             </select>

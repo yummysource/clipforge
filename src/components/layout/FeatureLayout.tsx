@@ -16,6 +16,7 @@ import { useFileDrop } from '@/hooks/useFileDrop';
 import { useMediaInfo } from '@/hooks/useMediaInfo';
 import { openMultipleFiles } from '@/services/files';
 import { VIDEO_EXTENSIONS } from '@/lib/constants';
+import { useT } from '@/i18n';
 import type { MediaFile } from '@/types/media';
 import type { TaskStatus, ProgressUpdate } from '@/types/task';
 
@@ -69,11 +70,16 @@ export function FeatureLayout({
   onStart,
   onCancel,
   onReset,
-  startLabel = '开始处理',
+  startLabel,
   startDisabled = false,
   hidePreview = false,
   hideFileInfo = false,
 }: FeatureLayoutProps) {
+  const t = useT();
+
+  /** 计算最终的开始按钮文字：优先使用传入值，否则使用 i18n 默认值 */
+  const resolvedStartLabel = startLabel ?? t('layout.startProcessing');
+
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const addFiles = useAppStore((s) => s.addFiles);
@@ -109,10 +115,10 @@ export function FeatureLayout({
           loading: false,
         });
       } else {
-        updateFile(file.id, { loading: false, error: '无法获取媒体信息' });
+        updateFile(file.id, { loading: false, error: t('file.cannotGetMediaInfo') });
       }
     }
-  }, [addFiles, fetchInfo, updateFile]);
+  }, [addFiles, fetchInfo, updateFile, t]);
 
   /** 文件拖拽 */
   useFileDrop([...VIDEO_EXTENSIONS], handleAddFiles);
@@ -196,7 +202,7 @@ export function FeatureLayout({
             backgroundColor: 'var(--color-bg-tertiary)',
           }}
         >
-          {isRunning ? '取消处理' : '重置'}
+          {isRunning ? t('common.cancelProcessing') : t('common.reset')}
         </button>
 
         {/* 进度面板（处理中） */}
@@ -226,7 +232,7 @@ export function FeatureLayout({
               opacity: (startDisabled || files.length === 0) ? 0.6 : 1,
             }}
           >
-            {startLabel}
+            {resolvedStartLabel}
           </button>
         )}
       </footer>

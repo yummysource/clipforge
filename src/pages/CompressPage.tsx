@@ -13,6 +13,7 @@ import { COMPRESS_PRESETS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
 import type { CompressMode } from '@/types/presets';
+import { useT } from '@/i18n';
 
 /**
  * 视频压缩页面组件
@@ -28,6 +29,7 @@ export function CompressPage() {
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
   const outputSuffix = useSettingsStore((s) => s.outputSuffix);
+  const t = useT();
 
   /* 参数状态 */
   const [presetId, setPresetId] = useState(COMPRESS_PRESETS[0].id);
@@ -70,15 +72,15 @@ export function CompressPage() {
 
   /** 压缩模式标签按钮 */
   const modeOptions: Array<{ value: CompressMode; label: string }> = [
-    { value: 'bySize', label: '按目标大小' },
-    { value: 'byRatio', label: '按压缩比' },
-    { value: 'byQuality', label: '按画质等级' },
+    { value: 'bySize', label: t('compress.bySize') },
+    { value: 'byRatio', label: t('compress.byRatio') },
+    { value: 'byQuality', label: t('compress.byQuality') },
   ];
 
   return (
     <FeatureLayout
-      title="视频压缩"
-      description="智能压缩，保持画质降低体积"
+      title={t('features.compress.name')}
+      description={t('features.compress.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
@@ -100,7 +102,7 @@ export function CompressPage() {
           className="block mb-2 font-medium"
           style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
         >
-          压缩模式
+          {t('compress.mode')}
         </label>
         <div className="flex gap-2">
           {modeOptions.map((opt) => (
@@ -128,7 +130,7 @@ export function CompressPage() {
             className="block mb-2 font-medium"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            目标大小: {targetSizeMb} MB
+            {t('compress.targetSize', { value: targetSizeMb })}
           </label>
           <input
             type="range"
@@ -149,7 +151,7 @@ export function CompressPage() {
             className="block mb-2 font-medium"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            压缩比: {Math.round(compressRatio * 100)}%
+            {t('compress.ratio', { value: Math.round(compressRatio * 100) })}
           </label>
           <input
             type="range"
@@ -164,8 +166,8 @@ export function CompressPage() {
             className="flex justify-between mt-1"
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
-            <span>10% (大幅压缩)</span>
-            <span>90% (轻微压缩)</span>
+            <span>{t('compress.ratioMin')}</span>
+            <span>{t('compress.ratioMax')}</span>
           </div>
         </div>
       )}
@@ -177,7 +179,7 @@ export function CompressPage() {
             className="block mb-2 font-medium"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            画质等级: {qualityLevel}/10
+            {t('compress.qualityLevel', { value: qualityLevel })}
           </label>
           <input
             type="range"
@@ -192,8 +194,8 @@ export function CompressPage() {
             className="flex justify-between mt-1"
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
-            <span>低画质 (小体积)</span>
-            <span>高画质 (大体积)</span>
+            <span>{t('compress.qualityMin')}</span>
+            <span>{t('compress.qualityMax')}</span>
           </div>
         </div>
       )}

@@ -11,6 +11,7 @@ import { resizeVideo } from '@/services/ffmpeg';
 import { RESOLUTION_PRESETS, FRAME_RATE_PRESETS, SCALE_ALGORITHMS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
+import { useT } from '@/i18n';
 
 /**
  * 分辨率/帧率调整页面组件
@@ -23,6 +24,7 @@ import { buildOutputPath } from '@/lib/output';
  * - 画面比例适应模式（裁剪/加黑边/拉伸）
  */
 export function ResizePage() {
+  const t = useT();
   const { status, progress, error, execute, cancel, reset } = useTask();
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
@@ -69,8 +71,8 @@ export function ResizePage() {
 
   return (
     <FeatureLayout
-      title="分辨率调整"
-      description="调整分辨率、帧率、比例"
+      title={t('features.resize.name')}
+      description={t('features.resize.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
@@ -81,7 +83,7 @@ export function ResizePage() {
       {/* 预设分辨率 */}
       <div className="mb-6">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          预设分辨率
+          {t('resize.presetResolution')}
         </label>
         <div className="flex flex-wrap gap-2">
           {RESOLUTION_PRESETS.map((preset) => (
@@ -107,7 +109,7 @@ export function ResizePage() {
       {/* 自定义分辨率 */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex-1">
-          <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>宽度</label>
+          <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>{t('resize.width')}</label>
           <input type="number" value={width} onChange={(e) => setWidth(Number(e.target.value))}
             min={16} max={7680}
             className="w-full px-3 py-2 rounded-lg text-sm"
@@ -115,7 +117,7 @@ export function ResizePage() {
         </div>
         <span className="mt-5" style={{ color: 'var(--color-text-placeholder)' }}>x</span>
         <div className="flex-1">
-          <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>高度</label>
+          <label className="block mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>{t('resize.height')}</label>
           <input type="number" value={height} onChange={(e) => setHeight(Number(e.target.value))}
             min={16} max={4320}
             className="w-full px-3 py-2 rounded-lg text-sm"
@@ -125,7 +127,7 @@ export function ResizePage() {
 
       {/* 保持比例开关 */}
       <div className="flex items-center justify-between mb-6">
-        <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>保持宽高比</span>
+        <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('resize.keepAspectRatio')}</span>
         <button
           onClick={() => setKeepAspectRatio(!keepAspectRatio)}
           className="relative w-10 h-6 rounded-full transition-colors cursor-pointer"
@@ -145,7 +147,7 @@ export function ResizePage() {
       {/* 帧率设置 */}
       <div className="mb-6">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          目标帧率
+          {t('resize.targetFps')}
         </label>
         <div className="flex flex-wrap gap-2">
           <button
@@ -158,7 +160,7 @@ export function ResizePage() {
               border: '1px solid var(--color-border)',
             }}
           >
-            保持原始
+            {t('resize.keepOriginal')}
           </button>
           {FRAME_RATE_PRESETS.map((preset) => (
             <button
@@ -181,13 +183,13 @@ export function ResizePage() {
       {/* 缩放算法 */}
       <div className="mb-4">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          缩放算法
+          {t('resize.scaleAlgorithm')}
         </label>
         <select value={scaleAlgorithm} onChange={(e) => setScaleAlgorithm(e.target.value)}
           className="w-full px-3 py-2 rounded-lg"
           style={{ backgroundColor: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)' }}>
           {SCALE_ALGORITHMS.map((a) => (
-            <option key={a.value} value={a.value}>{a.label} - {a.description}</option>
+            <option key={a.value} value={a.value}>{a.label} - {t(a.descKey as any)}</option>
           ))}
         </select>
       </div>
@@ -195,13 +197,13 @@ export function ResizePage() {
       {/* 画面适应模式 */}
       <div className="mb-4">
         <label className="block mb-2 font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-          画面适应
+          {t('resize.aspectMode')}
         </label>
         <div className="flex gap-2">
           {[
-            { value: 'crop', label: '裁剪适应' },
-            { value: 'pad', label: '加黑边' },
-            { value: 'stretch', label: '拉伸' },
+            { value: 'crop', label: t('resize.crop') },
+            { value: 'pad', label: t('resize.pad') },
+            { value: 'stretch', label: t('resize.stretch') },
           ].map((opt) => (
             <button key={opt.value} onClick={() => setAspectMode(opt.value)}
               className="px-3 py-1.5 rounded-lg cursor-pointer"

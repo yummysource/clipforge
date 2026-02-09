@@ -28,6 +28,8 @@ pub struct AppSettings {
     pub output_suffix: String,
     /// 文件已存在时是否自动覆盖（false 则自动添加序号）
     pub overwrite_existing: bool,
+    /// 界面语言（"en" = 英文，"zh" = 中文），默认英文
+    pub language: String,
 }
 
 impl Default for AppSettings {
@@ -48,6 +50,7 @@ impl Default for AppSettings {
             open_on_complete: false,
             output_suffix: "_output".to_string(),
             overwrite_existing: false,
+            language: "en".to_string(),
         }
     }
 }

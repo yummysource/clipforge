@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { formatDuration } from '@/lib/format';
+import { useT } from '@/i18n';
 
 /** VideoPreview 组件 Props */
 interface VideoPreviewProps {
@@ -28,6 +29,7 @@ interface VideoPreviewProps {
  * @param props - 视频路径和样式配置
  */
 export function VideoPreview({ filePath, className }: VideoPreviewProps) {
+  const t = useT();
   const {
     videoRef,
     state,
@@ -69,7 +71,7 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
           fontSize: 'var(--font-size-sm)',
         }}
       >
-        选择文件以预览
+        {t('file.selectFileToPreview')}
       </div>
     );
   }

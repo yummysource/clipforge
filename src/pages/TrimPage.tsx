@@ -11,6 +11,7 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { trimVideo } from '@/services/ffmpeg';
 import { generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
+import { useT } from '@/i18n';
 
 /**
  * 裁剪剪切页面组件
@@ -27,6 +28,7 @@ export function TrimPage() {
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
   const outputSuffix = useSettingsStore((s) => s.outputSuffix);
+  const t = useT();
 
   /* 参数状态 */
   const [segments, setSegments] = useState<TimeSegment[]>([
@@ -67,8 +69,8 @@ export function TrimPage() {
 
   return (
     <FeatureLayout
-      title="裁剪剪切"
-      description="截取片段、去头去尾"
+      title={t('features.trim.name')}
+      description={t('features.trim.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
@@ -91,10 +93,10 @@ export function TrimPage() {
         <div className="flex items-center justify-between">
           <div>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-              精确切割
+              {t('trim.preciseCut')}
             </p>
             <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-              重新编码以实现帧级精确，速度较慢
+              {t('trim.preciseCutDesc')}
             </p>
           </div>
           <button
@@ -120,10 +122,10 @@ export function TrimPage() {
           <div className="flex items-center justify-between">
             <div>
               <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                合并片段
+                {t('trim.mergeSegments')}
               </p>
               <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                将多个片段合并为一个文件
+                {t('trim.mergeSegmentsDesc')}
               </p>
             </div>
             <button

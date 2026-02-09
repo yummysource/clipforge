@@ -12,6 +12,7 @@ import { openAudioFile } from '@/services/files';
 import { AUDIO_FORMATS } from '@/lib/constants';
 import { generateOutputName } from '@/lib/format';
 import { buildOutputPath } from '@/lib/output';
+import { useT } from '@/i18n';
 import type { AudioMode } from '@/types/presets';
 
 /**
@@ -24,6 +25,7 @@ import type { AudioMode } from '@/types/presets';
  * - 调节音量：增减音量 dB 值
  */
 export function AudioPage() {
+  const t = useT();
   const { status, progress, error, execute, cancel, reset } = useTask();
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
@@ -65,18 +67,18 @@ export function AudioPage() {
     clearFiles();
   }, [reset, clearFiles]);
 
-  /** 模式选项 */
+  /** 模式选项 — 需在 hook 之后定义，以使用 t() 翻译 */
   const modeOptions: Array<{ value: AudioMode; label: string; desc: string }> = [
-    { value: 'extract', label: '提取音频', desc: '导出音轨' },
-    { value: 'replace', label: '替换配音', desc: '替换音轨' },
-    { value: 'mute', label: '静音消音', desc: '移除音频' },
-    { value: 'adjust', label: '调节音量', desc: '增减音量' },
+    { value: 'extract' as AudioMode, label: t('audio.extract'), desc: t('audio.extractDesc') },
+    { value: 'replace' as AudioMode, label: t('audio.replace'), desc: t('audio.replaceDesc') },
+    { value: 'mute' as AudioMode, label: t('audio.mute'), desc: t('audio.muteDesc') },
+    { value: 'adjust' as AudioMode, label: t('audio.adjust'), desc: t('audio.adjustDesc') },
   ];
 
   return (
     <FeatureLayout
-      title="音频处理"
-      description="提取音频、替换配音、调节音量"
+      title={t('features.audio.name')}
+      description={t('features.audio.description')}
       taskStatus={status}
       taskProgress={progress}
       taskError={error}
@@ -90,7 +92,7 @@ export function AudioPage() {
           className="block mb-2 font-medium"
           style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
         >
-          处理模式
+          {t('audio.mode')}
         </label>
         <div className="grid grid-cols-4 gap-2">
           {modeOptions.map((opt) => (
@@ -118,7 +120,7 @@ export function AudioPage() {
             className="block mb-2 font-medium"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            输出格式
+            {t('audio.outputFormat')}
           </label>
           <div className="flex gap-2">
             {AUDIO_FORMATS.map((f) => (
@@ -147,7 +149,7 @@ export function AudioPage() {
             className="block mb-2 font-medium"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            替换音频文件
+            {t('audio.replaceFile')}
           </label>
           <button
             onClick={handleSelectAudio}
@@ -158,7 +160,7 @@ export function AudioPage() {
               backgroundColor: 'var(--color-bg-tertiary)',
             }}
           >
-            {replaceAudioPath ? replaceAudioPath.split('/').pop() : '点击选择音频文件...'}
+            {replaceAudioPath ? replaceAudioPath.split('/').pop() : t('audio.clickSelectAudio')}
           </button>
         </div>
       )}
@@ -170,7 +172,7 @@ export function AudioPage() {
             className="block mb-2 font-medium"
             style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
           >
-            音量调节: {volumeDb > 0 ? '+' : ''}{volumeDb} dB
+            {t('audio.volume', { value: `${volumeDb > 0 ? '+' : ''}${volumeDb}` })}
           </label>
           <input
             type="range"
@@ -186,9 +188,9 @@ export function AudioPage() {
             className="flex justify-between mt-1"
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
-            <span>-20 dB (减小)</span>
-            <span>0 dB</span>
-            <span>+20 dB (增大)</span>
+            <span>{t('audio.volumeMin')}</span>
+            <span>{t('audio.volumeZero')}</span>
+            <span>{t('audio.volumeMax')}</span>
           </div>
         </div>
       )}

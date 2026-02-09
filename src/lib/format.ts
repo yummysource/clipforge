@@ -2,6 +2,7 @@
  * @file 格式化工具函数
  * @description 提供文件大小、时长、码率等数据的人性化格式化
  */
+import { getT } from '@/i18n';
 
 /**
  * 格式化文件大小为人类可读字符串
@@ -116,19 +117,20 @@ export function formatBitrate(bitsPerSecond: number): string {
  * 格式化预估剩余时间
  *
  * @param seconds - 预估剩余秒数
- * @returns 人类可读的剩余时间，如 "约 2 分 30 秒"
+ * @returns 人类可读的剩余时间
  */
 export function formatEta(seconds: number): string {
-  if (!seconds || seconds <= 0) return '即将完成';
-  if (seconds < 60) return `约 ${Math.ceil(seconds)} 秒`;
+  const t = getT();
+  if (!seconds || seconds <= 0) return t('eta.almostDone');
+  if (seconds < 60) return t('eta.seconds', { value: Math.ceil(seconds) });
   const m = Math.floor(seconds / 60);
   const s = Math.ceil(seconds % 60);
   if (m >= 60) {
     const h = Math.floor(m / 60);
     const rm = m % 60;
-    return `约 ${h} 小时 ${rm} 分`;
+    return t('eta.hoursMinutes', { h, m: rm });
   }
-  return s > 0 ? `约 ${m} 分 ${s} 秒` : `约 ${m} 分`;
+  return s > 0 ? t('eta.minutesSeconds', { m, s }) : t('eta.minutes', { m });
 }
 
 /**

@@ -12,6 +12,7 @@ import { useTask } from '@/hooks/useTask';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { parseVideoUrl, downloadVideo } from '@/services/download';
 import { formatDuration, formatFileSize } from '@/lib/format';
+import { useT } from '@/i18n';
 import type { VideoInfo, FormatInfo } from '@/services/download';
 
 /**
@@ -25,6 +26,7 @@ import type { VideoInfo, FormatInfo } from '@/services/download';
  * 5. 点击下载按钮，实时展示下载进度
  */
 export function DownloadPage() {
+  const t = useT();
   const { status, progress, error, execute, cancel, reset } = useTask();
   const outputDir = useSettingsStore((s) => s.outputDirectory);
 
@@ -113,7 +115,7 @@ export function DownloadPage() {
 
   return (
     <div className="flex flex-col h-full animate-slide-in-right">
-      <PageHeader title="视频下载" description="从 YouTube、X、Instagram 等平台下载视频" />
+      <PageHeader title={t('features.download.name')} description={t('features.download.description')} />
 
       <div className="flex-1 overflow-y-auto p-6">
         {/* URL 输入区 */}
@@ -125,7 +127,7 @@ export function DownloadPage() {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !parsing) handleParse();
             }}
-            placeholder="粘贴视频链接，支持 YouTube、X、Instagram..."
+            placeholder={t('download.urlPlaceholder')}
             disabled={parsing || isRunning}
             className="flex-1 px-4 py-2.5 rounded-lg outline-none transition-colors"
             style={{
@@ -155,7 +157,7 @@ export function DownloadPage() {
             ) : (
               <Search size={16} />
             )}
-            {parsing ? '解析中...' : '解析'}
+            {parsing ? t('download.parsing') : t('download.parse')}
           </button>
         </div>
 
@@ -242,13 +244,13 @@ export function DownloadPage() {
                   className="font-semibold"
                   style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
                 >
-                  选择下载格式
+                  {t('download.selectFormat')}
                 </h4>
 
                 {/* 视频+音频（含自动合并的高清选项） */}
                 {groupedFormats.combined.length > 0 && (
                   <FormatGroup
-                    label="视频+音频"
+                    label={t('download.videoAudio')}
                     formats={groupedFormats.combined}
                     selectedId={selectedFormatId}
                     onSelect={setSelectedFormatId}
@@ -258,7 +260,7 @@ export function DownloadPage() {
                 {/* 仅音频 */}
                 {groupedFormats.audioOnly.length > 0 && (
                   <FormatGroup
-                    label="仅音频"
+                    label={t('download.audioOnly')}
                     formats={groupedFormats.audioOnly}
                     selectedId={selectedFormatId}
                     onSelect={setSelectedFormatId}
@@ -285,7 +287,7 @@ export function DownloadPage() {
             backgroundColor: 'var(--color-bg-tertiary)',
           }}
         >
-          {isRunning ? '取消下载' : '重置'}
+          {isRunning ? t('download.cancelDownload') : t('common.reset')}
         </button>
 
         {/* 进度面板（下载中） */}
@@ -316,7 +318,7 @@ export function DownloadPage() {
             }}
           >
             <Download size={16} />
-            开始下载
+            {t('download.startDownload')}
           </button>
         )}
       </footer>

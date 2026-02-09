@@ -4,6 +4,7 @@
  */
 import { Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 /** DropZone 组件 Props */
 interface DropZoneProps {
@@ -36,6 +37,8 @@ export function DropZone({
   hasFiles = false,
   className,
 }: DropZoneProps) {
+  const t = useT();
+
   /** 紧凑模式：已有文件时只显示小型添加按钮 */
   if (hasFiles) {
     return (
@@ -53,7 +56,7 @@ export function DropZone({
         }}
       >
         <Upload size={16} />
-        <span>添加更多文件</span>
+        <span>{t('file.addMore')}</span>
       </button>
     );
   }
@@ -85,18 +88,18 @@ export function DropZone({
           className="font-medium"
           style={{ color: 'var(--color-text-primary)', fontSize: 'var(--font-size-md)' }}
         >
-          拖拽文件到此处
+          {t('file.dragHere')}
         </p>
         <p
           className="mt-1"
           style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}
         >
-          或点击选择文件
+          {t('file.orClickSelect')}
         </p>
       </div>
 
       <p style={{ color: 'var(--color-text-placeholder)', fontSize: 'var(--font-size-xs)' }}>
-        支持: {acceptText}
+        {t('file.supported')}: {acceptText}
       </p>
     </button>
   );

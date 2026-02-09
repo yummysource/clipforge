@@ -4,6 +4,7 @@
  */
 import type { TaskStatus, ProgressUpdate } from '@/types/task';
 import { formatEta, formatFileSize } from '@/lib/format';
+import { useT } from '@/i18n';
 
 /** ProgressPanel 组件 Props */
 interface ProgressPanelProps {
@@ -43,6 +44,7 @@ export function ProgressPanel({
   error,
   className,
 }: ProgressPanelProps) {
+  const t = useT();
   const percent = progress?.percent ?? 0;
 
   return (
@@ -62,7 +64,7 @@ export function ProgressPanel({
               className="truncate"
               style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}
             >
-              {fileName || '处理中...'}
+              {fileName || t('common.processing')}
             </span>
             <span
               className="shrink-0 ml-2 font-medium"
@@ -89,7 +91,9 @@ export function ProgressPanel({
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
             <span>
-              {progress?.speed ? `${progress.speed.toFixed(1)}x 速度` : '计算中...'}
+              {progress?.speed
+                ? `${progress.speed.toFixed(1)}x ${t('common.speed')}`
+                : t('common.calculating')}
               {progress?.outputSize ? ` - ${formatFileSize(progress.outputSize)}` : ''}
             </span>
             <span>
@@ -108,7 +112,7 @@ export function ProgressPanel({
                 border: '1px solid var(--color-error)',
               }}
             >
-              取消处理
+              {t('common.cancelProcessing')}
             </button>
           )}
         </div>
@@ -121,7 +125,7 @@ export function ProgressPanel({
             className="font-medium"
             style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-success)' }}
           >
-            处理完成
+            {t('common.completed')}
           </span>
           {onReset && (
             <button
@@ -132,7 +136,7 @@ export function ProgressPanel({
                 border: '1px solid var(--color-accent)',
               }}
             >
-              继续处理
+              {t('common.continueProcessing')}
             </button>
           )}
         </div>
@@ -145,7 +149,7 @@ export function ProgressPanel({
             className="font-medium"
             style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-error)' }}
           >
-            处理失败
+            {t('common.failed')}
           </span>
           {error && (
             <p
@@ -164,7 +168,7 @@ export function ProgressPanel({
                 border: '1px solid var(--color-accent)',
               }}
             >
-              重试
+              {t('common.retry')}
             </button>
           )}
         </div>
@@ -174,7 +178,7 @@ export function ProgressPanel({
       {(status === 'idle' || status === 'cancelled') && (
         <div className="flex items-center justify-center py-2">
           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-placeholder)' }}>
-            {status === 'cancelled' ? '已取消' : '准备就绪'}
+            {status === 'cancelled' ? t('common.cancelled') : t('common.ready')}
           </span>
         </div>
       )}

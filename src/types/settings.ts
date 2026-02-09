@@ -23,6 +23,8 @@ export interface AppSettings {
   outputSuffix: string;
   /** 文件已存在时是否自动覆盖（false 则自动添加序号） */
   overwriteExisting: boolean;
+  /** 界面语言（'en' = 英文，'zh' = 中文），默认英文 */
+  language: string;
 }
 
 /**
@@ -37,4 +39,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   openOnComplete: false,
   outputSuffix: '_output',
   overwriteExisting: false,
+  language: 'en',
 };

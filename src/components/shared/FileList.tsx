@@ -6,6 +6,7 @@ import { X, FileVideo, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatFileSize, formatDuration } from '@/lib/format';
 import type { MediaFile } from '@/types/media';
+import { useT } from '@/i18n';
 
 /** FileList 组件 Props */
 interface FileListProps {
@@ -34,6 +35,8 @@ interface FileListProps {
  * @param props - 文件列表数据和事件回调
  */
 export function FileList({ files, selectedIndex, onSelect, onRemove, className }: FileListProps) {
+  const t = useT();
+
   if (files.length === 0) return null;
 
   return (
@@ -108,7 +111,7 @@ export function FileList({ files, selectedIndex, onSelect, onRemove, className }
               onMouseLeave={(e) => {
                 e.currentTarget.style.color = 'var(--color-text-placeholder)';
               }}
-              title="移除文件"
+              title={t('file.removeFile')}
             >
               <X size={14} />
             </button>
@@ -118,7 +121,7 @@ export function FileList({ files, selectedIndex, onSelect, onRemove, className }
 
       {/* 文件计数 */}
       <p className="text-center mt-1" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-placeholder)' }}>
-        已添加 {files.length} 个文件
+        {t('file.filesAdded', { count: files.length })}
       </p>
     </div>
   );
