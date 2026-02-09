@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2025-02-09
+
+### Changed
+
+- **App Logo** — Redesigned with cyberpunk-style film strip infinity motif, applied macOS-compliant squircle mask with standard padding
+- **Favicon** — Added `public/favicon.png` and updated `index.html` reference from `vite.svg`
+- **Version Management** — Added `scripts/bump-version.sh` to sync version across `package.json`, `tauri.conf.json`, and `Cargo.toml` in one command
+- **Changelog** — Translated to English, added v0.1.1 and v0.1.2 entries
+
 ## [0.1.2] - 2025-02-09
 
 ### Added
@@ -56,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tailwind CSS + Radix UI component library
 - macOS (Apple Silicon) support
 
+[0.1.3]: https://github.com/yummysource/clipforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/yummysource/clipforge/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yummysource/clipforge/releases/tag/v0.1.1
 [0.1.0]: https://github.com/yummysource/clipforge/releases/tag/v0.1.0

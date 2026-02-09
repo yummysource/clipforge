@@ -1,7 +1,7 @@
 {
   "name": "clipforge",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "bump": "bash scripts/bump-version.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
