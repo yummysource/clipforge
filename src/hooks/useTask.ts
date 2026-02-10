@@ -95,6 +95,8 @@ export function useTask(taskType: string = 'unknown'): UseTaskReturn {
       const taskId = await serviceFn(params, (event: TaskEvent) => {
         switch (event.event) {
           case 'started':
+            /* Store task ID immediately so cancel() can use it while task is running */
+            taskIdRef.current = event.data.taskId;
             /* Replace temp ID with real task ID in global store */
             removeTask(tempId);
             addTask({
