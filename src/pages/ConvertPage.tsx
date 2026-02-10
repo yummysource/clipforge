@@ -25,7 +25,7 @@ import { useT } from '@/i18n';
  * - 高级选项折叠面板
  */
 export function ConvertPage() {
-  const { status, progress, error, execute, cancel, reset } = useTask('convert');
+  const { status, progress, result, error, execute, cancel, reset } = useTask('convert');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
@@ -86,6 +86,7 @@ export function ConvertPage() {
       onStart={handleStart}
       onCancel={cancel}
       onReset={handleReset}
+      taskResult={result}
     >
       {/* 预设选择 */}
       <PresetSelector

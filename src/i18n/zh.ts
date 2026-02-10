@@ -120,6 +120,8 @@ const zh: Translations = {
     tasksRunning: '{count} 个任务进行中',
     noActiveTasks: '无活跃任务',
     startProcessing: '开始处理',
+    previewTab: '预览',
+    resultTab: '结果',
   },
 
   // ── 格式转换页 ──

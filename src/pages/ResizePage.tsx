@@ -25,7 +25,7 @@ import { useT } from '@/i18n';
  */
 export function ResizePage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask('resize');
+  const { status, progress, result, error, execute, cancel, reset } = useTask('resize');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
@@ -79,6 +79,7 @@ export function ResizePage() {
       onStart={handleStart}
       onCancel={cancel}
       onReset={handleReset}
+      taskResult={result}
     >
       {/* 预设分辨率 */}
       <div className="mb-6">

@@ -24,7 +24,7 @@ import type { SubtitleMode } from '@/types/presets';
  */
 export function SubtitlePage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask('subtitle');
+  const { status, progress, result, error, execute, cancel, reset } = useTask('subtitle');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
@@ -88,6 +88,7 @@ export function SubtitlePage() {
       onStart={handleStart}
       onCancel={cancel}
       onReset={handleReset}
+      taskResult={result}
     >
       {/* 模式选择 */}
       <div className="mb-6">

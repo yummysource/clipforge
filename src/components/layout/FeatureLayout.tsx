@@ -1,10 +1,11 @@
 /**
- * @file 功能页面通用布局组件
- * @description 三栏布局模板：左侧文件区(280px) | 中间参数区(自适应) | 右侧预览区(360px)
+ * @file Feature page common layout component
+ * @description Three-column layout template: left file area (280px) | middle params area (auto) | right preview area (360px)
  *
- * 所有 9 个功能页面复用此布局，通过 children/slots 注入各自内容
+ * All 9 feature pages reuse this layout, injecting their own content via children/slots.
+ * Supports a "Preview" / "Result" tab toggle in the right panel to show source or output file.
  */
-import { useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { PageHeader } from './PageHeader';
 import { DropZone } from '@/components/shared/DropZone';
 import { FileList } from '@/components/shared/FileList';
@@ -18,47 +19,55 @@ import { openMultipleFiles } from '@/services/files';
 import { VIDEO_EXTENSIONS } from '@/lib/constants';
 import { useT } from '@/i18n';
 import type { MediaFile } from '@/types/media';
-import type { TaskStatus, ProgressUpdate } from '@/types/task';
+import type { TaskStatus, ProgressUpdate, TaskResult } from '@/types/task';
 
-/** FeatureLayout 组件 Props */
+/** Right panel tab type — preview shows source file, result shows output file */
+type RightPanelTab = 'preview' | 'result';
+
+/** FeatureLayout component Props */
 interface FeatureLayoutProps {
-  /** 页面标题 */
+  /** Page title */
   title: string;
-  /** 页面描述 */
+  /** Page description */
   description?: string;
-  /** 中间参数区域内容 */
+  /** Middle parameter area content */
   children: React.ReactNode;
-  /** 任务状态 */
+  /** Task status */
   taskStatus: TaskStatus;
-  /** 任务进度 */
+  /** Task progress */
   taskProgress: ProgressUpdate | null;
-  /** 任务错误信息 */
+  /** Task error message */
   taskError?: string | null;
-  /** 点击"开始处理"回调 */
+  /** "Start" button callback */
   onStart: () => void;
-  /** 点击"取消"回调 */
+  /** "Cancel" button callback */
   onCancel: () => void;
-  /** 点击"重置"回调 */
+  /** "Reset" button callback — full reset (clears files + task state) */
   onReset: () => void;
-  /** 开始按钮文字 */
+  /** Task result — provides outputPath for result preview */
+  taskResult?: TaskResult | null;
+  /** Start button label */
   startLabel?: string;
-  /** 是否禁用开始按钮 */
+  /** Whether to disable start button */
   startDisabled?: boolean;
-  /** 是否隐藏预览区 */
+  /** Whether to hide the preview area */
   hidePreview?: boolean;
-  /** 是否隐藏文件信息面板 */
+  /** Whether to hide file info panel */
   hideFileInfo?: boolean;
 }
 
 /**
- * 功能页面通用三栏布局
+ * Feature page common three-column layout
  *
- * 提供标准化的功能页面结构：
- * 1. 顶部 PageHeader（面包屑 + 标题）
- * 2. 三栏内容区：文件区 | 参数区 | 预览区
- * 3. 底部操作栏：取消 + 进度/开始按钮
+ * Provides standardized feature page structure:
+ * 1. Top PageHeader (breadcrumb + title)
+ * 2. Three-column content area: file area | params area | preview area
+ * 3. Bottom action bar: cancel + progress/start button
  *
- * @param props - 布局配置和子内容
+ * The right panel supports tab switching between "Preview" (source file)
+ * and "Result" (output file) when a task result is available.
+ *
+ * @param props - Layout config and child content
  */
 export function FeatureLayout({
   title,
@@ -70,6 +79,7 @@ export function FeatureLayout({
   onStart,
   onCancel,
   onReset,
+  taskResult,
   startLabel,
   startDisabled = false,
   hidePreview = false,
@@ -77,7 +87,7 @@ export function FeatureLayout({
 }: FeatureLayoutProps) {
   const t = useT();
 
-  /** 计算最终的开始按钮文字：优先使用传入值，否则使用 i18n 默认值 */
+  /** Resolved start button label — use passed value or i18n default */
   const resolvedStartLabel = startLabel ?? t('layout.startProcessing');
 
   const files = useAppStore((s) => s.files);
@@ -89,10 +99,38 @@ export function FeatureLayout({
 
   const { fetchInfo } = useMediaInfo();
 
-  /** 选中文件 */
+  /** Second useMediaInfo instance for fetching output file info in "Result" tab */
+  const {
+    mediaInfo: resultMediaInfo,
+    fetchInfo: fetchResultInfo,
+    clear: clearResultInfo,
+  } = useMediaInfo();
+
+  /** Right panel tab state */
+  const [rightPanelTab, setRightPanelTab] = useState<RightPanelTab>('preview');
+
+  /** Whether the completion/failure overlay has been dismissed by the user */
+  const [overlayDismissed, setOverlayDismissed] = useState(false);
+
+  /** Selected source file */
   const selectedFile = files[selectedIndex] ?? null;
 
-  /** 处理新文件添加：创建 MediaFile 对象并获取 MediaInfo */
+  /** Auto-switch to "result" tab when task completes with outputPath */
+  useEffect(() => {
+    if (taskStatus === 'completed' && taskResult?.outputPath) {
+      setRightPanelTab('result');
+      fetchResultInfo(taskResult.outputPath);
+    }
+  }, [taskStatus, taskResult?.outputPath, fetchResultInfo]);
+
+  /** Reset overlay dismissed flag when a new task starts running */
+  useEffect(() => {
+    if (taskStatus === 'running') {
+      setOverlayDismissed(false);
+    }
+  }, [taskStatus]);
+
+  /** Handle adding new files: create MediaFile objects and fetch MediaInfo */
   const handleAddFiles = useCallback(async (paths: string[]) => {
     const newFiles: MediaFile[] = paths.map((p) => ({
       id: crypto.randomUUID(),
@@ -105,7 +143,7 @@ export function FeatureLayout({
     }));
     addFiles(newFiles);
 
-    /* 异步获取每个文件的媒体信息 */
+    /* Async fetch media info for each file */
     for (const file of newFiles) {
       const info = await fetchInfo(file.path);
       if (info) {
@@ -120,10 +158,10 @@ export function FeatureLayout({
     }
   }, [addFiles, fetchInfo, updateFile, t]);
 
-  /** 文件拖拽 */
+  /** File drag-and-drop */
   useFileDrop([...VIDEO_EXTENSIONS], handleAddFiles);
 
-  /** 点击选择文件 */
+  /** Click to select files */
   const handleClickSelect = useCallback(async () => {
     const paths = await openMultipleFiles();
     if (paths.length > 0) {
@@ -131,16 +169,40 @@ export function FeatureLayout({
     }
   }, [handleAddFiles]);
 
+  /**
+   * Full reset handler — wraps onReset to also reset tab state, clear result info,
+   * and reset overlay dismissed flag
+   */
+  const handleFullReset = useCallback(() => {
+    onReset();
+    setRightPanelTab('preview');
+    clearResultInfo();
+    setOverlayDismissed(false);
+  }, [onReset, clearResultInfo]);
+
+  /**
+   * Dismiss overlay — only hides the notification overlay.
+   * Does NOT clear task result or files, so the Result tab stays visible.
+   */
+  const handleDismissOverlay = useCallback(() => {
+    setOverlayDismissed(true);
+  }, []);
+
   const isRunning = taskStatus === 'running';
+
+  /** Determine what to show in the right panel based on active tab */
+  const showResultTab = rightPanelTab === 'result' && taskResult?.outputPath;
+  const previewFilePath = showResultTab ? taskResult.outputPath : (selectedFile?.path ?? null);
+  const previewMediaInfo = showResultTab ? resultMediaInfo : (selectedFile?.mediaInfo ?? null);
 
   return (
     <div className="flex flex-col h-full animate-slide-in-right">
-      {/* 页面头部 */}
+      {/* Page header */}
       <PageHeader title={title} description={description} />
 
-      {/* 三栏内容区 */}
+      {/* Three-column content area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* 左侧：文件区 */}
+        {/* Left: file area */}
         <aside
           className="flex flex-col gap-3 p-4 overflow-y-auto shrink-0"
           style={{
@@ -161,12 +223,12 @@ export function FeatureLayout({
           />
         </aside>
 
-        {/* 中间：参数区 */}
+        {/* Middle: params area */}
         <section className="flex-1 overflow-y-auto p-6">
           {children}
         </section>
 
-        {/* 右侧：预览区 */}
+        {/* Right: preview / result area */}
         {!hidePreview && (
           <aside
             className="flex flex-col p-4 overflow-y-auto shrink-0"
@@ -175,26 +237,73 @@ export function FeatureLayout({
               borderLeft: '1px solid var(--color-divider)',
             }}
           >
+            {/* Tab toggle buttons — only show when result is available */}
+            {taskResult?.outputPath && (
+              <div
+                className="flex mb-3 rounded-lg overflow-hidden shrink-0"
+                style={{
+                  border: '1px solid var(--color-border)',
+                  backgroundColor: 'var(--color-bg-tertiary)',
+                }}
+              >
+                <button
+                  onClick={() => setRightPanelTab('preview')}
+                  className="flex-1 px-3 py-1.5 text-center cursor-pointer transition-colors"
+                  style={{
+                    fontSize: 'var(--font-size-sm)',
+                    fontWeight: rightPanelTab === 'preview' ? 600 : 400,
+                    color: rightPanelTab === 'preview'
+                      ? 'var(--color-text-inverse)'
+                      : 'var(--color-text-secondary)',
+                    backgroundColor: rightPanelTab === 'preview'
+                      ? 'var(--color-accent)'
+                      : 'transparent',
+                  }}
+                >
+                  {t('layout.previewTab')}
+                </button>
+                <button
+                  onClick={() => setRightPanelTab('result')}
+                  className="flex-1 px-3 py-1.5 text-center cursor-pointer transition-colors"
+                  style={{
+                    fontSize: 'var(--font-size-sm)',
+                    fontWeight: rightPanelTab === 'result' ? 600 : 400,
+                    color: rightPanelTab === 'result'
+                      ? 'var(--color-text-inverse)'
+                      : 'var(--color-text-secondary)',
+                    backgroundColor: rightPanelTab === 'result'
+                      ? 'var(--color-accent)'
+                      : 'transparent',
+                  }}
+                >
+                  {t('layout.resultTab')}
+                </button>
+              </div>
+            )}
+
+            {/* Video preview — source or output depending on tab */}
             <div className="shrink-0">
-              <VideoPreview filePath={selectedFile?.path ?? null} />
+              <VideoPreview filePath={previewFilePath} />
             </div>
+
+            {/* File info — source or output depending on tab */}
             {!hideFileInfo && (
               <div className="mt-4">
-                <FileInfo mediaInfo={selectedFile?.mediaInfo ?? null} />
+                <FileInfo mediaInfo={previewMediaInfo} />
               </div>
             )}
           </aside>
         )}
       </div>
 
-      {/* 底部操作栏 */}
+      {/* Bottom action bar */}
       <footer
         className="flex items-center justify-between shrink-0 px-6 py-3"
         style={{ borderTop: '1px solid var(--color-divider)' }}
       >
-        {/* 取消按钮 */}
+        {/* Cancel / Reset button */}
         <button
-          onClick={isRunning ? onCancel : onReset}
+          onClick={isRunning ? onCancel : handleFullReset}
           className="px-4 py-2 rounded-lg cursor-pointer transition-colors"
           style={{
             fontSize: 'var(--font-size-sm)',
@@ -205,7 +314,7 @@ export function FeatureLayout({
           {isRunning ? t('common.cancelProcessing') : t('common.reset')}
         </button>
 
-        {/* 进度面板（处理中） */}
+        {/* Progress panel (while running) */}
         {isRunning && (
           <ProgressPanel
             status={taskStatus}
@@ -215,7 +324,7 @@ export function FeatureLayout({
           />
         )}
 
-        {/* 开始处理按钮 */}
+        {/* Start button */}
         {!isRunning && (
           <button
             onClick={onStart}
@@ -237,8 +346,8 @@ export function FeatureLayout({
         )}
       </footer>
 
-      {/* 任务完成/失败浮层提示 */}
-      {(taskStatus === 'completed' || taskStatus === 'failed') && (
+      {/* Task completion/failure overlay — dismiss only hides it, keeps result intact */}
+      {(taskStatus === 'completed' || taskStatus === 'failed') && !overlayDismissed && (
         <div
           className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 animate-slide-in-top"
         >
@@ -246,7 +355,7 @@ export function FeatureLayout({
             status={taskStatus}
             progress={taskProgress}
             error={taskError}
-            onReset={onReset}
+            onReset={handleDismissOverlay}
           />
         </div>
       )}

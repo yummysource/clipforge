@@ -25,7 +25,7 @@ import type { WatermarkType, WatermarkPosition } from '@/types/presets';
  */
 export function WatermarkPage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask('watermark');
+  const { status, progress, result, error, execute, cancel, reset } = useTask('watermark');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
@@ -100,6 +100,7 @@ export function WatermarkPage() {
       onStart={handleStart}
       onCancel={cancel}
       onReset={handleReset}
+      taskResult={result}
     >
       {/* 水印类型切换 */}
       <div className="mb-6">
