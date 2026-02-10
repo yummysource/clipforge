@@ -1,6 +1,6 @@
 [package]
 name = "clipforge"
-version = "0.2.0"
+version = "0.2.1"
 description = "ClipForge - macOS ffmpeg UI 应用"
 authors = ["ClipForge Team"]
 edition = "2021"
