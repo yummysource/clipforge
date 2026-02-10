@@ -1,35 +1,67 @@
 /**
- * @file 视频预览播放器组件
- * @description 内嵌视频播放器，支持播放控制、进度条、音量调节
+ * @file Media preview component
+ * @description Renders preview based on file type: video player for videos,
+ * animated img for GIFs, audio player for audio files, and placeholder for others.
  */
 import { useEffect } from 'react';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import {
   Play, Pause, Volume2, VolumeX,
-  SkipBack, SkipForward,
+  SkipBack, SkipForward, Music, FileText,
 } from 'lucide-react';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { formatDuration } from '@/lib/format';
 import { useT } from '@/i18n';
 
-/** VideoPreview 组件 Props */
+/** File type categories for preview rendering */
+type MediaType = 'video' | 'gif' | 'audio' | 'other';
+
+/** Audio file extensions */
+const AUDIO_EXTENSIONS = new Set(['mp3', 'aac', 'wav', 'flac', 'ogg', 'm4a', 'wma', 'opus']);
+
+/** Subtitle / text file extensions that cannot be previewed */
+const TEXT_EXTENSIONS = new Set(['srt', 'ass', 'vtt', 'ssa', 'sub', 'txt']);
+
+/**
+ * Determine media type from file extension
+ *
+ * @param filePath - Absolute file path
+ * @returns The detected media type category
+ */
+function getMediaType(filePath: string): MediaType {
+  const ext = filePath.split('.').pop()?.toLowerCase() ?? '';
+  if (ext === 'gif') return 'gif';
+  if (AUDIO_EXTENSIONS.has(ext)) return 'audio';
+  if (TEXT_EXTENSIONS.has(ext)) return 'other';
+  return 'video';
+}
+
+/** VideoPreview component Props */
 interface VideoPreviewProps {
-  /** 视频文件的本地绝对路径 */
+  /** Local absolute path of the media file */
   filePath: string | null;
-  /** 自定义 CSS class */
+  /** Custom CSS class */
   className?: string;
 }
 
 /**
- * 视频预览播放器组件
+ * Media preview component
  *
- * 使用 Tauri convertFileSrc 将本地路径转为 asset:// URL。
- * 内置播放控制栏：播放/暂停、进度条、时间显示、逐帧前进/后退、音量控制。
+ * Uses Tauri convertFileSrc to convert local paths to asset:// URLs.
+ * Renders different UI based on file type:
+ * - Video: full player with controls (play/pause, progress, volume, frame step)
+ * - GIF: animated img tag with auto-play
+ * - Audio: simple audio player with play/pause and progress
+ * - Other (text/subtitle): placeholder icon
  *
- * @param props - 视频路径和样式配置
+ * @param props - File path and style config
  */
 export function VideoPreview({ filePath, className }: VideoPreviewProps) {
   const t = useT();
+
+  const mediaType = filePath ? getMediaType(filePath) : null;
+
+  /** Only use video player hook for actual video files */
   const {
     videoRef,
     state,
@@ -38,17 +70,16 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
     toggleMute,
     stepForward,
     stepBackward,
-  } = useVideoPlayer(filePath);
+  } = useVideoPlayer(mediaType === 'video' ? filePath : null);
 
-  /** 将本地路径转为 Tauri asset URL */
-  const videoSrc = filePath ? convertFileSrc(filePath) : '';
+  /** Convert local path to Tauri asset URL */
+  const mediaSrc = filePath ? convertFileSrc(filePath) : '';
 
-  /** 文件路径变化时重置播放器并重新加载 */
+  /** Reset and reload video player when file path changes */
   useEffect(() => {
     const video = videoRef.current;
-    if (video && filePath) {
+    if (video && filePath && mediaType === 'video') {
       video.load();
-      // 某些协议下 load() 后 duration 延迟可用，轮询兜底
       const checkDuration = () => {
         if (video.duration && Number.isFinite(video.duration)) {
           video.dispatchEvent(new Event('durationchange'));
@@ -57,9 +88,9 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
       const timer = setTimeout(checkDuration, 500);
       return () => clearTimeout(timer);
     }
-  }, [filePath, videoRef]);
+  }, [filePath, videoRef, mediaType]);
 
-  /** 无文件时显示占位 */
+  /** No file — show placeholder */
   if (!filePath) {
     return (
       <div
@@ -76,7 +107,66 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
     );
   }
 
-  /** 进度条点击跳转 */
+  /** GIF preview — use <img> for native animated GIF support */
+  if (mediaType === 'gif') {
+    return (
+      <div className={`flex flex-col rounded-xl overflow-hidden ${className ?? ''}`}
+           style={{ backgroundColor: '#000' }}>
+        <img
+          src={mediaSrc}
+          alt="GIF preview"
+          className="w-full object-contain"
+          style={{ maxHeight: '300px' }}
+        />
+      </div>
+    );
+  }
+
+  /** Audio preview — simple player with icon */
+  if (mediaType === 'audio') {
+    return (
+      <div className={`flex flex-col rounded-xl overflow-hidden ${className ?? ''}`}
+           style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
+        {/* Audio icon area */}
+        <div
+          className="flex items-center justify-center"
+          style={{ aspectRatio: '16/9', color: 'var(--color-text-placeholder)' }}
+        >
+          <Music size={48} strokeWidth={1.5} />
+        </div>
+        {/* Native audio player */}
+        <div className="px-3 py-2">
+          <audio
+            src={mediaSrc}
+            controls
+            className="w-full"
+            style={{ height: '32px' }}
+            preload="metadata"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  /** Other (subtitle/text) — non-previewable placeholder */
+  if (mediaType === 'other') {
+    return (
+      <div
+        className={`flex flex-col items-center justify-center gap-2 rounded-xl ${className ?? ''}`}
+        style={{
+          backgroundColor: 'var(--color-bg-tertiary)',
+          aspectRatio: '16/9',
+          color: 'var(--color-text-placeholder)',
+          fontSize: 'var(--font-size-sm)',
+        }}
+      >
+        <FileText size={36} strokeWidth={1.5} />
+        <span>{filePath.split('/').pop()}</span>
+      </div>
+    );
+  }
+
+  /** Video preview — full player with controls */
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
@@ -88,19 +178,19 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
   return (
     <div className={`flex flex-col rounded-xl overflow-hidden ${className ?? ''}`}
          style={{ backgroundColor: '#000' }}>
-      {/* 视频画面 */}
+      {/* Video element */}
       <video
         ref={videoRef}
-        src={videoSrc}
+        src={mediaSrc}
         className="w-full aspect-video object-contain"
         onClick={togglePlay}
         preload="metadata"
       />
 
-      {/* 播放控制栏 */}
+      {/* Playback controls */}
       <div className="flex flex-col gap-1 px-3 py-2"
            style={{ backgroundColor: 'var(--player-controls-bg)' }}>
-        {/* 进度条 */}
+        {/* Progress bar */}
         <div
           className="w-full h-1.5 rounded-full cursor-pointer group"
           style={{ backgroundColor: 'var(--progress-bg)' }}
@@ -115,28 +205,28 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
           />
         </div>
 
-        {/* 控制按钮行 */}
+        {/* Control buttons row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* 逐帧后退 */}
+            {/* Step backward */}
             <button onClick={() => stepBackward()} className="p-1 text-white/80 hover:text-white cursor-pointer">
               <SkipBack size={14} />
             </button>
-            {/* 播放/暂停 */}
+            {/* Play/Pause */}
             <button onClick={togglePlay} className="p-1 text-white/80 hover:text-white cursor-pointer">
               {state.isPlaying ? <Pause size={16} /> : <Play size={16} />}
             </button>
-            {/* 逐帧前进 */}
+            {/* Step forward */}
             <button onClick={() => stepForward()} className="p-1 text-white/80 hover:text-white cursor-pointer">
               <SkipForward size={14} />
             </button>
-            {/* 静音切换 */}
+            {/* Mute toggle */}
             <button onClick={toggleMute} className="p-1 text-white/80 hover:text-white cursor-pointer">
               {state.isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
             </button>
           </div>
 
-          {/* 时间显示 */}
+          {/* Time display */}
           <span className="text-xs text-white/70">
             {formatDuration(state.currentTime)} / {formatDuration(state.duration)}
           </span>
