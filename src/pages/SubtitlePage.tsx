@@ -110,6 +110,20 @@ export function SubtitlePage() {
         </div>
       </div>
 
+      {/* Embed mode tip — soft subtitles need player support */}
+      {mode === 'embed' && (
+        <div
+          className="mb-4 px-3 py-2.5 rounded-lg text-xs leading-relaxed"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+            color: 'var(--color-text-secondary)',
+            border: '1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)',
+          }}
+        >
+          {t('subtitle.embedTip')}
+        </div>
+      )}
+
       {/* 嵌入/烧录模式 — 字幕文件选择 */}
       {(mode === 'embed' || mode === 'burnIn') && (
         <div className="mb-4">
