@@ -933,20 +933,29 @@ pub fn build_subtitle_command(params: &SubtitleParams) -> Vec<String> {
                 .with_progress()
                 .input(&params.input_path);
 
-            // 构建 subtitles/ass 滤镜
+            // Build subtitles/ass filter for burn-in rendering.
+            // Use fontsdir to point libass at macOS system fonts so that
+            // CJK characters render correctly with the static ffmpeg build.
+            let fonts_dir = get_system_fonts_dir();
+
             if let Some(ref sub_path) = params.subtitle_path {
                 let ext = crate::utils::path::file_extension(sub_path);
 
-                // 构建 force_style 样式参数
+                // Build force_style parameters.
+                // Default to "Arial Unicode MS" (always pre-installed on macOS,
+                // supports CJK without triggering on-demand font download dialogs).
                 let mut style_parts: Vec<String> = Vec::new();
-                if let Some(ref name) = params.font_name {
-                    style_parts.push(format!("FontName={}", name));
-                }
+                let font_name = params.font_name.as_deref()
+                    .unwrap_or("Arial Unicode MS");
+                style_parts.push(format!("FontName={}", font_name));
                 if let Some(size) = params.font_size {
                     style_parts.push(format!("FontSize={}", size));
                 }
                 if let Some(ref color) = params.primary_color {
-                    style_parts.push(format!("PrimaryColour={}", color));
+                    // Convert HTML hex color (#RRGGBB) to ASS format (&H00BBGGRR).
+                    // ASS uses BGR byte order with alpha prefix.
+                    let ass_color = html_color_to_ass(color);
+                    style_parts.push(format!("PrimaryColour={}", ass_color));
                 }
                 if let Some(width) = params.outline_width {
                     style_parts.push(format!("Outline={}", width));
@@ -956,26 +965,30 @@ pub fn build_subtitle_command(params: &SubtitleParams) -> Vec<String> {
                 }
 
                 let filter = if ext == "ass" {
-                    // ASS 字幕保留原始样式
-                    format!("ass={}", escape_filter_path(sub_path))
-                } else if style_parts.is_empty() {
-                    format!("subtitles={}", escape_filter_path(sub_path))
+                    // ASS subtitles keep their original styles
+                    format!(
+                        "ass={}:fontsdir={}",
+                        escape_filter_path(sub_path),
+                        escape_filter_path(&fonts_dir)
+                    )
                 } else {
                     format!(
-                        "subtitles={}:force_style='{}'",
+                        "subtitles={}:fontsdir={}:force_style='{}'",
                         escape_filter_path(sub_path),
+                        escape_filter_path(&fonts_dir),
                         style_parts.join(",")
                     )
                 };
 
                 cmd = cmd.video_filter(&filter);
             } else {
-                // 烧录视频内嵌字幕（如 MKV 中的字幕流）
+                // Burn in embedded subtitle streams (e.g. from MKV)
                 let sub_index = params.subtitle_index.unwrap_or(0);
                 cmd = cmd.video_filter(&format!(
-                    "subtitles={}:si={}",
+                    "subtitles={}:si={}:fontsdir={}",
                     escape_filter_path(&params.input_path),
-                    sub_index
+                    sub_index,
+                    escape_filter_path(&fonts_dir)
                 ));
             }
 
@@ -1060,6 +1073,41 @@ fn get_image_overlay_position(
     (x, y)
 }
 
+
+/// Return the system fonts directory for libass font discovery.
+///
+/// On macOS, `/System/Library/Fonts/Supplemental` contains pre-installed
+/// fonts including "Arial Unicode MS" (22MB, full CJK coverage).
+/// Falls back to `/usr/share/fonts` on Linux.
+fn get_system_fonts_dir() -> String {
+    if cfg!(target_os = "macos") {
+        "/System/Library/Fonts/Supplemental".to_string()
+    } else {
+        "/usr/share/fonts".to_string()
+    }
+}
+
+/// Convert HTML hex color (#RRGGBB) to ASS subtitle format (&H00BBGGRR).
+///
+/// ASS/SSA subtitle format uses BGR byte order with an alpha prefix byte.
+/// For example:
+/// - `#FFFFFF` (white) → `&H00FFFFFF`
+/// - `#FF0000` (red)   → `&H000000FF`
+/// - `#00FF00` (green) → `&H0000FF00`
+fn html_color_to_ass(html_color: &str) -> String {
+    let hex = html_color.trim_start_matches('#');
+    if hex.len() == 6 {
+        if let (Ok(r), Ok(g), Ok(b)) = (
+            u8::from_str_radix(&hex[0..2], 16),
+            u8::from_str_radix(&hex[2..4], 16),
+            u8::from_str_radix(&hex[4..6], 16),
+        ) {
+            return format!("&H00{:02X}{:02X}{:02X}", b, g, r);
+        }
+    }
+    // Fallback: pass through as-is (might already be ASS format)
+    html_color.to_string()
+}
 
 /// 转义滤镜中的文件路径
 ///
