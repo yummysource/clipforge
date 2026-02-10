@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-02-10
+
+### Added
+
+- **Drag-to-Card Quick Start** — Drag files directly onto feature cards on the home page to auto-navigate with files pre-loaded; supports Retina display hit testing via dual-pass bounding rect detection
+- **Result Preview Tab** — After task completion, switch between source and output file preview via Preview/Result tabs; dismissing the completion overlay no longer clears files or results
+- **Multi-Type Media Preview** — Preview panel now supports video, GIF (native `<img>`), audio (with `<audio>` controls), and subtitle/text files
+- **App Logo in About Dialog** — The About ClipForge dialog now displays the app logo via custom macOS menu with embedded PNG icon
+
+### Fixed
+
+- **Static FFmpeg Build** — Replaced sidecar binaries with static ffmpeg/ffprobe builds (8.0.1) including libass/libfreetype/fontconfig, enabling subtitle burn-in support
+- **Subtitle Burn-In Rendering** — Use Arial Unicode MS as default font for proper CJK rendering; fix hex color conversion to ASS format
+- **Subtitle Embed Robustness** — Added pre-flight validation, post-embed verification via ffprobe, fixed stream mapping, and added MOV/M4V container support
+- **Video Player Controls** — Fixed play/pause and time display not working on initial file selection due to missing effect dependencies
+- **Task Cancellation** — Fixed cancel not working because taskIdRef was set after service function resolved instead of on the started event
+- **Preview/Result Tabs** — Always show both tabs; disable Result tab when no output is available
+- **Watermark Fixes** — Fixed image watermark scaling to use video width (scale2ref); replaced unavailable drawtext filter with Rust-based text-to-PNG rendering for text watermarks
+- **Status Bar Sync** — Synced useTask hook with global useTaskStore so the status bar correctly shows active tasks
+
+### Changed
+
+- Centered the task completion popup on the page
+- Increased default window size from 1120×740 to 1280×800
+
 ## [0.1.3] - 2025-02-09
 
 ### Changed
@@ -65,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tailwind CSS + Radix UI component library
 - macOS (Apple Silicon) support
 
+[0.2.0]: https://github.com/yummysource/clipforge/releases/tag/v0.2.0
 [0.1.3]: https://github.com/yummysource/clipforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/yummysource/clipforge/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yummysource/clipforge/releases/tag/v0.1.1

@@ -27,3 +27,6 @@ Thumbs.db
 
 # TypeScript 构建缓存
 tsconfig.tsbuildinfo
+
+# Project-specific
+CLAUDE.md
