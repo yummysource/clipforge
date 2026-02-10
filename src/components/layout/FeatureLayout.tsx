@@ -237,8 +237,7 @@ export function FeatureLayout({
               borderLeft: '1px solid var(--color-divider)',
             }}
           >
-            {/* Tab toggle buttons — only show when result is available */}
-            {taskResult?.outputPath && (
+            {/* Tab toggle buttons — always visible; Result tab disabled when no output */}
               <div
                 className="flex mb-3 rounded-lg overflow-hidden shrink-0"
                 style={{
@@ -263,11 +262,14 @@ export function FeatureLayout({
                   {t('layout.previewTab')}
                 </button>
                 <button
-                  onClick={() => setRightPanelTab('result')}
-                  className="flex-1 px-3 py-1.5 text-center cursor-pointer transition-colors"
+                  onClick={() => taskResult?.outputPath && setRightPanelTab('result')}
+                  disabled={!taskResult?.outputPath}
+                  className="flex-1 px-3 py-1.5 text-center transition-colors"
                   style={{
                     fontSize: 'var(--font-size-sm)',
                     fontWeight: rightPanelTab === 'result' ? 600 : 400,
+                    cursor: taskResult?.outputPath ? 'pointer' : 'not-allowed',
+                    opacity: taskResult?.outputPath ? 1 : 0.4,
                     color: rightPanelTab === 'result'
                       ? 'var(--color-text-inverse)'
                       : 'var(--color-text-secondary)',
@@ -279,7 +281,6 @@ export function FeatureLayout({
                   {t('layout.resultTab')}
                 </button>
               </div>
-            )}
 
             {/* Video preview — source or output depending on tab */}
             <div className="shrink-0">
