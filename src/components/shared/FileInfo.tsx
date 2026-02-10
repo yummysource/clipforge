@@ -43,12 +43,22 @@ export function FileInfo({ mediaInfo, className }: FileInfoProps) {
   const video = mediaInfo.videoStreams[0];
   const audio = mediaInfo.audioStreams[0];
 
+  /**
+   * 从文件名提取扩展名作为格式显示
+   * 比使用 ffprobe 的 format_name 更准确，因为 ffprobe 可能返回
+   * "mov,mp4,m4a,3gp,3g2,mj2" 这样的多格式字符串
+   */
+  const getFileFormat = (fileName: string): string => {
+    const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
+    return ext.toUpperCase() || 'UNKNOWN';
+  };
+
   /** 信息条目 */
   const items: Array<{ label: string; value: string }> = [
     { label: t('file.fileName'), value: mediaInfo.fileName },
     { label: t('file.fileSize'), value: formatFileSize(mediaInfo.fileSize) },
     { label: t('file.duration'), value: formatDuration(mediaInfo.duration) },
-    { label: t('file.format'), value: mediaInfo.formatName.split(',')[0].toUpperCase() },
+    { label: t('file.format'), value: getFileFormat(mediaInfo.fileName) },
   ];
 
   if (video) {

@@ -214,44 +214,73 @@ pub fn build_convert_command(params: &ConvertParams) -> Vec<String> {
         .with_progress()
         .input(&params.input_path);
 
+    // WebM 格式的编码器兼容性处理
+    let ext = params.output_format.to_lowercase();
+    let is_webm = ext == "webm";
+
+    // WebM 格式只支持 VP8/VP9/AV1 视频编码和 Vorbis/Opus 音频编码
+    // 如果用户选择了不兼容的编码器，自动替换为兼容编码器
+    let video_codec = if is_webm && !matches!(
+        params.video_codec.as_str(),
+        "libvpx" | "libvpx-vp9" | "libaom-av1" | "copy"
+    ) {
+        "libvpx-vp9" // 默认使用 VP9
+    } else {
+        &params.video_codec
+    };
+
+    let audio_codec = if is_webm && !matches!(
+        params.audio_codec.as_str(),
+        "libvorbis" | "libopus" | "copy"
+    ) {
+        "libopus" // 默认使用 Opus
+    } else {
+        &params.audio_codec
+    };
+
     // 设置视频编码器
-    if params.hardware_accel.unwrap_or(false) && params.video_codec != "copy" {
-        // VideoToolbox 硬件加速编码
+    if params.hardware_accel.unwrap_or(false) && video_codec != "copy" && !is_webm {
+        // VideoToolbox 硬件加速编码（WebM 不支持硬件加速）
         cmd = cmd.video_codec("h264_videotoolbox")
             .video_bitrate("5M");
     } else {
-        cmd = cmd.video_codec(&params.video_codec);
+        cmd = cmd.video_codec(video_codec);
         // 软件编码时设置 CRF 和 preset（copy 模式不需要）
-        if params.video_codec != "copy" {
-            if let Some(quality) = params.quality {
-                cmd = cmd.crf(quality);
-            }
-            if let Some(ref preset) = params.preset {
-                cmd = cmd.preset(preset);
+        if video_codec != "copy" {
+            // VP9 编码器使用 CRF 模式，需要设置 -b:v 0
+            if video_codec == "libvpx-vp9" {
+                cmd = cmd.args_pair("-b:v", "0");
+                if let Some(quality) = params.quality {
+                    cmd = cmd.crf(quality);
+                }
+                // VP9 使用 cpu-used 代替 preset
+                cmd = cmd.args_pair("-cpu-used", "2");
+            } else {
+                // 其他编码器使用标准 CRF + preset
+                if let Some(quality) = params.quality {
+                    cmd = cmd.crf(quality);
+                }
+                if let Some(ref preset) = params.preset {
+                    cmd = cmd.preset(preset);
+                }
             }
         }
     }
 
     // 设置音频编码器
-    cmd = cmd.audio_codec(&params.audio_codec);
-    if params.audio_codec != "copy" {
+    cmd = cmd.audio_codec(audio_codec);
+    if audio_codec != "copy" {
         cmd = cmd.audio_bitrate("128k");
     }
 
     // MP4/MOV 格式添加 faststart 优化
-    let ext = params.output_format.to_lowercase();
     if ext == "mp4" || ext == "mov" {
         cmd = cmd.faststart();
     }
 
     // HEVC 的 Apple 兼容性标签
-    if params.video_codec == "libx265" {
+    if video_codec == "libx265" {
         cmd = cmd.args_pair("-tag:v", "hvc1");
-    }
-
-    // WebM 格式需要特殊处理
-    if ext == "webm" && params.video_codec == "libvpx-vp9" {
-        cmd = cmd.args_pair("-b:v", "0");
     }
 
     // 添加额外参数

@@ -77,6 +77,12 @@ const zh: Translations = {
     cannotGetMediaInfo: '无法获取媒体信息',
   },
 
+  // ── 预览 ──
+  preview: {
+    unsupportedFormat: '浏览器不支持预览此格式',
+    unsupportedFormatDesc: '{format} 格式无法在浏览器中直接预览，但文件已成功转换。建议转换为 MP4/WebM 格式以支持预览。',
+  },
+
   // ── 进度面板 ──
   progress: {
     processing: '处理中...',
@@ -135,6 +141,7 @@ const zh: Translations = {
     expand: '展开',
     collapse: '收起',
     audioCodec: '音频编码',
+    webmCodecHint: '💡 WebM 格式仅支持 VP8/VP9/AV1 视频编码和 Vorbis/Opus 音频编码。不兼容的编码器将自动替换为 VP9 + Opus。',
   },
 
   // ── 压缩页 ──

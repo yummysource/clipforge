@@ -35,6 +35,10 @@
   --color-error: #FF3B30;
   --color-info: #007AFF;
 
+  /* 状态背景色 */
+  --color-bg-warning: rgba(255, 149, 0, 0.08);
+  --color-border-warning: rgba(255, 149, 0, 0.25);
+
   /* 阴影 */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
@@ -107,6 +111,9 @@
     --color-warning: #FF9F0A;
     --color-error: #FF453A;
     --color-info: #0A84FF;
+
+    --color-bg-warning: rgba(255, 159, 10, 0.12);
+    --color-border-warning: rgba(255, 159, 10, 0.3);
 
     --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
     --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);

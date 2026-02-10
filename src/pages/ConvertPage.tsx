@@ -121,6 +121,19 @@ export function ConvertPage() {
             </option>
           ))}
         </select>
+        {outputFormat === 'webm' && (
+          <div
+            className="mt-2 px-3 py-2 rounded-lg"
+            style={{
+              backgroundColor: 'var(--color-bg-warning)',
+              border: '1px solid var(--color-border-warning)',
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            {t('convert.webmCodecHint')}
+          </div>
+        )}
       </div>
 
       {/* 视频编码器 */}
@@ -163,8 +176,8 @@ export function ConvertPage() {
             type="range"
             min={0}
             max={51}
-            value={quality}
-            onChange={(e) => setQuality(Number(e.target.value))}
+            value={51 - quality}
+            onChange={(e) => setQuality(51 - Number(e.target.value))}
             className="w-full"
             style={{ accentColor: 'var(--color-accent)' }}
           />
@@ -172,8 +185,8 @@ export function ConvertPage() {
             className="flex justify-between mt-1"
             style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}
           >
-            <span>{t('convert.highQuality')}</span>
             <span>{t('convert.lowQuality')}</span>
+            <span>{t('convert.highQuality')}</span>
           </div>
         </div>
       )}

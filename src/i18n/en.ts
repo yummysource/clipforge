@@ -76,6 +76,12 @@ const en = {
     cannotGetMediaInfo: 'Cannot get media info',
   },
 
+  // ── Preview ──
+  preview: {
+    unsupportedFormat: 'Browser cannot preview this format',
+    unsupportedFormatDesc: '{format} format cannot be previewed directly in browser, but the file has been converted successfully. Consider converting to MP4/WebM for preview support.',
+  },
+
   // ── 进度面板 ──
   progress: {
     processing: 'Processing...',
@@ -134,6 +140,7 @@ const en = {
     expand: 'Expand',
     collapse: 'Collapse',
     audioCodec: 'Audio Codec',
+    webmCodecHint: '💡 WebM format only supports VP8/VP9/AV1 video and Vorbis/Opus audio. Incompatible codecs will be auto-replaced with VP9 + Opus.',
   },
 
   // ── 压缩页 ──

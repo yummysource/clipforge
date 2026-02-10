@@ -14,13 +14,28 @@ import { formatDuration } from '@/lib/format';
 import { useT } from '@/i18n';
 
 /** File type categories for preview rendering */
-type MediaType = 'video' | 'gif' | 'audio' | 'other';
+type MediaType = 'video' | 'gif' | 'audio' | 'unsupported' | 'other';
 
 /** Audio file extensions */
 const AUDIO_EXTENSIONS = new Set(['mp3', 'aac', 'wav', 'flac', 'ogg', 'm4a', 'wma', 'opus']);
 
 /** Subtitle / text file extensions that cannot be previewed */
 const TEXT_EXTENSIONS = new Set(['srt', 'ass', 'vtt', 'ssa', 'sub', 'txt']);
+
+/**
+ * Video formats not supported by browser's native video tag
+ * These formats can be converted by ffmpeg but cannot be previewed in browser
+ */
+const UNSUPPORTED_VIDEO_EXTENSIONS = new Set([
+  'flv',  // Flash Video - requires Flash player
+  'mkv',  // Matroska - not supported by HTML5 video
+  'avi',  // AVI container - limited codec support
+  'ts',   // MPEG-TS - streaming format, not for direct playback
+  'wmv',  // Windows Media - proprietary format
+  'm2ts', 'mts', // MPEG-2 TS variants
+  'vob',  // DVD Video Object
+  'f4v',  // Flash MP4
+]);
 
 /**
  * Determine media type from file extension
@@ -33,6 +48,7 @@ function getMediaType(filePath: string): MediaType {
   if (ext === 'gif') return 'gif';
   if (AUDIO_EXTENSIONS.has(ext)) return 'audio';
   if (TEXT_EXTENSIONS.has(ext)) return 'other';
+  if (UNSUPPORTED_VIDEO_EXTENSIONS.has(ext)) return 'unsupported';
   return 'video';
 }
 
@@ -143,6 +159,36 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
             style={{ height: '32px' }}
             preload="metadata"
           />
+        </div>
+      </div>
+    );
+  }
+
+  /** Unsupported video format — show helpful message */
+  if (mediaType === 'unsupported') {
+    const fileName = filePath.split('/').pop() ?? '';
+    const ext = fileName.split('.').pop()?.toUpperCase() ?? '';
+    return (
+      <div
+        className={`flex flex-col items-center justify-center gap-3 rounded-xl p-6 ${className ?? ''}`}
+        style={{
+          backgroundColor: 'var(--color-bg-tertiary)',
+          aspectRatio: '16/9',
+          color: 'var(--color-text-secondary)',
+          fontSize: 'var(--font-size-sm)',
+        }}
+      >
+        <Play size={48} strokeWidth={1.5} style={{ color: 'var(--color-text-placeholder)' }} />
+        <div className="text-center">
+          <div style={{ color: 'var(--color-text-primary)', fontWeight: 500, marginBottom: '4px' }}>
+            {t('preview.unsupportedFormat')}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)' }}>
+            {t('preview.unsupportedFormatDesc', { format: ext })}
+          </div>
+        </div>
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-placeholder)' }}>
+          {fileName}
         </div>
       </div>
     );
