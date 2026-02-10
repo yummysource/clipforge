@@ -263,6 +263,7 @@ const zh: Translations = {
     fontColor: '颜色',
     outlineWidth: '描边宽度',
     marginBottom: '底部边距',
+    embedTip: '软字幕以独立轨道嵌入，需要在播放器中手动开启字幕显示（推荐使用 VLC / IINA 播放器）。macOS 自带 QuickTime 对字幕支持有限。',
   },
 
   // ── 下载页 ──

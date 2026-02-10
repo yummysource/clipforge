@@ -895,8 +895,12 @@ pub fn build_subtitle_command(params: &SubtitleParams) -> Vec<String> {
             let subtitle_path = params.subtitle_path.as_deref().unwrap_or("");
             let ext = crate::utils::path::file_extension(&params.output_path);
 
-            // 根据输出容器选择字幕编码器
-            let sub_codec = if ext == "mp4" { "mov_text" } else { "srt" };
+            // Choose subtitle codec based on output container format.
+            // MP4/MOV use mov_text (Apple/ISO standard), MKV/others use srt.
+            let sub_codec = match ext.as_str() {
+                "mp4" | "mov" | "m4v" => "mov_text",
+                _ => "srt",
+            };
 
             FfmpegCommand::new()
                 .with_progress()
@@ -906,14 +910,19 @@ pub fn build_subtitle_command(params: &SubtitleParams) -> Vec<String> {
                 .audio_codec("copy")
                 .args_pair("-c:s", sub_codec)
                 .args_pair("-map", "0:v")
-                .args_pair("-map", "0:a")
-                .args_pair("-map", "1:s")
+                // Use 0:a? (optional) to avoid fatal error if input has no audio stream
+                .args_pair("-map", "0:a?")
+                .args_pair("-map", "1:0")
+                // Mark the subtitle track as default so players auto-display it
+                .args_pair("-disposition:s:0", "default")
+                .args_pair("-metadata:s:s:0", "handler_name=SubtitleHandler")
                 .output(&params.output_path)
                 .build()
         }
         SubtitleMode::Extract => {
             let sub_index = params.subtitle_index.unwrap_or(0);
             FfmpegCommand::new()
+                .with_progress()
                 .input(&params.input_path)
                 .args_pair("-map", &format!("0:s:{}", sub_index))
                 .output(&params.output_path)

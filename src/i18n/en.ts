@@ -262,6 +262,7 @@ const en = {
     fontColor: 'Color',
     outlineWidth: 'Outline width',
     marginBottom: 'Bottom margin',
+    embedTip: 'Soft subtitles are embedded as a separate track. You need to enable subtitles in your video player (VLC / IINA recommended). macOS QuickTime has limited subtitle support.',
   },
 
   // ── 下载页 ──
