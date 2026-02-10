@@ -15,6 +15,12 @@ interface AppState {
   selectedFileIndex: number;
   /** 全局加载状态提示 */
   globalLoading: boolean;
+  /**
+   * Pending file paths from home page drag-drop.
+   * Stored separately so FeatureLayout can safely clearFiles() on mount
+   * and then process these paths without race conditions.
+   */
+  pendingDragPaths: string[];
 
   /** 设置 ffmpeg 版本 */
   setFfmpegVersion: (version: string) => void;
@@ -32,6 +38,10 @@ interface AppState {
   reorderFiles: (fromIndex: number, toIndex: number) => void;
   /** 设置全局加载状态 */
   setGlobalLoading: (loading: boolean) => void;
+  /** Store file paths from home page drag for FeatureLayout to consume on mount */
+  setPendingDragPaths: (paths: string[]) => void;
+  /** Clear pending drag paths after FeatureLayout has consumed them */
+  clearPendingDragPaths: () => void;
 }
 
 /**
@@ -45,6 +55,7 @@ export const useAppStore = create<AppState>((set) => ({
   files: [],
   selectedFileIndex: 0,
   globalLoading: false,
+  pendingDragPaths: [],
 
   setFfmpegVersion: (version) => set({ ffmpegVersion: version }),
 
@@ -77,4 +88,8 @@ export const useAppStore = create<AppState>((set) => ({
     }),
 
   setGlobalLoading: (loading) => set({ globalLoading: loading }),
+
+  setPendingDragPaths: (paths) => set({ pendingDragPaths: paths }),
+
+  clearPendingDragPaths: () => set({ pendingDragPaths: [] }),
 }));

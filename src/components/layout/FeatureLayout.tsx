@@ -5,7 +5,7 @@
  * All 9 feature pages reuse this layout, injecting their own content via children/slots.
  * Supports a "Preview" / "Result" tab toggle in the right panel to show source or output file.
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { PageHeader } from './PageHeader';
 import { DropZone } from '@/components/shared/DropZone';
 import { FileList } from '@/components/shared/FileList';
@@ -129,6 +129,54 @@ export function FeatureLayout({
       setOverlayDismissed(false);
     }
   }, [taskStatus]);
+
+  /**
+   * Capture pending drag paths from the store during render phase.
+   *
+   * React StrictMode double-invokes effects (mount → unmount → remount).
+   * If we read & clear pendingDragPaths inside the effect, the first run
+   * clears the store and the second run finds nothing — losing the files.
+   *
+   * By reading & clearing during render (which only runs once even in
+   * StrictMode), we stash the paths in a ref that survives the
+   * unmount-remount cycle. The effect then consumes from the ref.
+   */
+  const pendingPathsRef = useRef<string[] | null>(null);
+  if (pendingPathsRef.current === null) {
+    const { pendingDragPaths, clearPendingDragPaths } = useAppStore.getState();
+    if (pendingDragPaths.length > 0) {
+      pendingPathsRef.current = pendingDragPaths;
+      clearPendingDragPaths();
+    } else {
+      pendingPathsRef.current = [];
+    }
+  }
+
+  /** Guard ref to ensure the mount effect runs exactly once under StrictMode */
+  const mountedRef = useRef(false);
+
+  /**
+   * On mount: clear stale files from previous session, then consume
+   * any pending file paths dragged from the home page.
+   *
+   * Uses pendingPathsRef (populated during render) so it works correctly
+   * under React StrictMode's double effect invocation. The mountedRef
+   * guard prevents duplicate file additions from StrictMode's remount.
+   */
+  useEffect(() => {
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+
+    /* Always clear stale files from previous session */
+    useAppStore.getState().clearFiles();
+
+    /* If files were dragged from home page, process them now */
+    const paths = pendingPathsRef.current;
+    if (paths && paths.length > 0) {
+      handleAddFiles(paths);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); /* Run once on mount — handleAddFiles is stable */
 
   /** Handle adding new files: create MediaFile objects and fetch MediaInfo */
   const handleAddFiles = useCallback(async (paths: string[]) => {
