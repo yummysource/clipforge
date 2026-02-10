@@ -443,10 +443,15 @@ pub fn build_trim_command(params: &TrimParams) -> Vec<String> {
 /// # 参数
 /// - `params` - 合并参数
 /// - `concat_file_path` - concat demuxer 使用的临时文件列表路径
+/// - `durations` - 每个输入视频的时长（秒），用于计算转场 offset
 ///
 /// # 返回
 /// ffmpeg 命令行参数数组
-pub fn build_merge_command(params: &MergeParams, concat_file_path: &str) -> Vec<String> {
+pub fn build_merge_command(
+    params: &MergeParams,
+    concat_file_path: &str,
+    durations: &[f64],
+) -> Vec<String> {
     let has_transition = params.transition.is_some();
     let needs_filter = has_transition || params.normalize;
 
@@ -509,31 +514,53 @@ pub fn build_merge_command(params: &MergeParams, concat_file_path: &str) -> Vec<
             let trans_type = &transition.transition_type;
             let trans_dur = transition.duration;
 
+            // 计算每个转场的 offset 值
+            // 对于第 i 次转场（从0开始计数）：
+            // offset = sum(durations[0..=i]) - (i+1) * trans_dur
+            //
+            // 例如：video1=10s, video2=8s, video3=6s, trans=1s
+            // offset[0] = 10 - 1 = 9s（在 video1 的第9秒开始转场）
+            // offset[1] = (10+8) - 2*1 = 16s（在合并后的第16秒开始第二次转场）
+            // offset[2] = (10+8+6) - 3*1 = 21s
+            let mut offsets: Vec<f64> = Vec::new();
+            for i in 0..n.saturating_sub(1) {
+                let cumulative: f64 = durations.iter().take(i + 1).sum();
+                let offset = (cumulative - (i as f64 + 1.0) * trans_dur).max(0.0);
+                offsets.push(offset);
+            }
+
             // 第一次 xfade：v0 + v1
             if n >= 2 {
+                let offset_0 = offsets.get(0).copied().unwrap_or(0.0);
                 // 清空简单 concat 输入，改用 xfade 链式
                 filter_parts.push(format!(
-                    "[v0][v1]xfade=transition={t}:duration={d}:offset=OFFSET_0[vt0];\
+                    "[v0][v1]xfade=transition={t}:duration={d}:offset={o}[vt0];\
                      [a0][a1]acrossfade=d={d}[at0]",
-                    t = trans_type, d = trans_dur
+                    t = trans_type,
+                    d = trans_dur,
+                    o = offset_0
                 ));
             }
             // 后续 xfade（第 3 个及以后的视频）
             for i in 2..n {
+                let offset = offsets.get(i - 1).copied().unwrap_or(0.0);
                 filter_parts.push(format!(
-                    "[vt{prev}][v{i}]xfade=transition={t}:duration={d}:offset=OFFSET_{prev}[vt{curr}];\
+                    "[vt{prev}][v{i}]xfade=transition={t}:duration={d}:offset={o}[vt{curr}];\
                      [at{prev}][a{i}]acrossfade=d={d}[at{curr}]",
-                    prev = i - 2, i = i, curr = i - 1,
-                    t = trans_type, d = trans_dur
+                    prev = i - 2,
+                    i = i,
+                    curr = i - 1,
+                    t = trans_type,
+                    d = trans_dur,
+                    o = offset
                 ));
             }
 
             let last = if n >= 3 { n - 2 } else { 0 };
-            let filter_str = format!(
-                "{};-map [vt{}] -map [at{}]",
-                filter_parts.join(";"),
-                last, last
-            );
+            let filter_str = filter_parts.join(";");
+
+            log::info!("Merge with transition filter: {}", filter_str);
+            log::info!("Durations: {:?}, Offsets: {:?}", durations, offsets);
 
             let mut cmd = FfmpegCommand::new().with_progress();
             for path in &params.input_paths {
@@ -541,6 +568,8 @@ pub fn build_merge_command(params: &MergeParams, concat_file_path: &str) -> Vec<
             }
             cmd = cmd
                 .complex_filter(&filter_str)
+                .args_pair("-map", &format!("[vt{}]", last))
+                .args_pair("-map", &format!("[at{}]", last))
                 .video_codec("libx264")
                 .crf(18)
                 .preset("medium")

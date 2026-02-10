@@ -168,9 +168,54 @@ const zh: Translations = {
     totalDuration: '总时长: {value}',
     transition: '转场效果',
     transitionNone: '无转场',
+
+    // 转场效果分组
+    transitionGroupFade: '淡入淡出类',
+    transitionGroupSlide: '滑动类',
+    transitionGroupWipe: '擦除类',
+    transitionGroupDissolve: '溶解类',
+    transitionGroupZoom: '缩放类',
+    transitionGroupSpecial: '特效类',
+
+    // 淡入淡出类
     transitionFade: '淡入淡出',
-    transitionWipe: '左划过渡',
+    transitionFadeBlack: '黑场淡入淡出',
+    transitionFadeWhite: '白场淡入淡出',
+    transitionFadeGrays: '灰度淡入淡出',
+
+    // 滑动类
+    transitionSlideLeft: '向左滑动',
+    transitionSlideRight: '向右滑动',
+    transitionSlideUp: '向上滑动',
+    transitionSlideDown: '向下滑动',
+
+    // 擦除类
+    transitionWipeLeft: '左擦除',
+    transitionWipeRight: '右擦除',
+    transitionWipeUp: '上擦除',
+    transitionWipeDown: '下擦除',
+
+    // 溶解类
     transitionDissolve: '溶解过渡',
+    transitionPixelize: '像素化',
+
+    // 缩放类
+    transitionZoomIn: '放大进入',
+    transitionSmoothLeft: '平滑左移',
+    transitionSmoothRight: '平滑右移',
+    transitionSmoothUp: '平滑上移',
+    transitionSmoothDown: '平滑下移',
+
+    // 特效类
+    transitionCircleOpen: '圆形展开',
+    transitionCircleClose: '圆形收缩',
+    transitionDiagTL: '左上对角线',
+    transitionDiagTR: '右上对角线',
+    transitionDiagBL: '左下对角线',
+    transitionDiagBR: '右下对角线',
+    transitionRadial: '辐射状',
+    transitionHBlur: '水平模糊',
+
     transitionDuration: '转场时长: {value}s',
     normalize: '统一分辨率/帧率',
     normalizeDesc: '自动将所有视频调整为一致的分辨率和帧率',

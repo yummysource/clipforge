@@ -167,9 +167,54 @@ const en = {
     totalDuration: 'Total: {value}',
     transition: 'Transition',
     transitionNone: 'None',
+
+    // Transition effect groups
+    transitionGroupFade: 'Fade Effects',
+    transitionGroupSlide: 'Slide Effects',
+    transitionGroupWipe: 'Wipe Effects',
+    transitionGroupDissolve: 'Dissolve Effects',
+    transitionGroupZoom: 'Zoom Effects',
+    transitionGroupSpecial: 'Special Effects',
+
+    // Fade effects
     transitionFade: 'Fade',
-    transitionWipe: 'Wipe left',
+    transitionFadeBlack: 'Fade through black',
+    transitionFadeWhite: 'Fade through white',
+    transitionFadeGrays: 'Fade through grays',
+
+    // Slide effects
+    transitionSlideLeft: 'Slide left',
+    transitionSlideRight: 'Slide right',
+    transitionSlideUp: 'Slide up',
+    transitionSlideDown: 'Slide down',
+
+    // Wipe effects
+    transitionWipeLeft: 'Wipe left',
+    transitionWipeRight: 'Wipe right',
+    transitionWipeUp: 'Wipe up',
+    transitionWipeDown: 'Wipe down',
+
+    // Dissolve effects
     transitionDissolve: 'Dissolve',
+    transitionPixelize: 'Pixelize',
+
+    // Zoom effects
+    transitionZoomIn: 'Zoom in',
+    transitionSmoothLeft: 'Smooth left',
+    transitionSmoothRight: 'Smooth right',
+    transitionSmoothUp: 'Smooth up',
+    transitionSmoothDown: 'Smooth down',
+
+    // Special effects
+    transitionCircleOpen: 'Circle open',
+    transitionCircleClose: 'Circle close',
+    transitionDiagTL: 'Diagonal top-left',
+    transitionDiagTR: 'Diagonal top-right',
+    transitionDiagBL: 'Diagonal bottom-left',
+    transitionDiagBR: 'Diagonal bottom-right',
+    transitionRadial: 'Radial',
+    transitionHBlur: 'Horizontal blur',
+
     transitionDuration: 'Transition duration: {value}s',
     normalize: 'Normalize resolution/fps',
     normalizeDesc: 'Auto adjust all videos to same resolution and frame rate',

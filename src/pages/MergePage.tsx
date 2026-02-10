@@ -193,9 +193,57 @@ export function MergePage() {
           }}
         >
           <option value="none">{t('merge.transitionNone')}</option>
-          <option value="fade">{t('merge.transitionFade')}</option>
-          <option value="wipeleft">{t('merge.transitionWipe')}</option>
-          <option value="dissolve">{t('merge.transitionDissolve')}</option>
+
+          {/* 淡入淡出类 */}
+          <optgroup label={t('merge.transitionGroupFade')}>
+            <option value="fade">{t('merge.transitionFade')}</option>
+            <option value="fadeblack">{t('merge.transitionFadeBlack')}</option>
+            <option value="fadewhite">{t('merge.transitionFadeWhite')}</option>
+            <option value="fadegrays">{t('merge.transitionFadeGrays')}</option>
+          </optgroup>
+
+          {/* 滑动类 */}
+          <optgroup label={t('merge.transitionGroupSlide')}>
+            <option value="slideleft">{t('merge.transitionSlideLeft')}</option>
+            <option value="slideright">{t('merge.transitionSlideRight')}</option>
+            <option value="slideup">{t('merge.transitionSlideUp')}</option>
+            <option value="slidedown">{t('merge.transitionSlideDown')}</option>
+          </optgroup>
+
+          {/* 擦除类 */}
+          <optgroup label={t('merge.transitionGroupWipe')}>
+            <option value="wipeleft">{t('merge.transitionWipeLeft')}</option>
+            <option value="wiperight">{t('merge.transitionWipeRight')}</option>
+            <option value="wipeup">{t('merge.transitionWipeUp')}</option>
+            <option value="wipedown">{t('merge.transitionWipeDown')}</option>
+          </optgroup>
+
+          {/* 溶解类 */}
+          <optgroup label={t('merge.transitionGroupDissolve')}>
+            <option value="dissolve">{t('merge.transitionDissolve')}</option>
+            <option value="pixelize">{t('merge.transitionPixelize')}</option>
+          </optgroup>
+
+          {/* 缩放类 */}
+          <optgroup label={t('merge.transitionGroupZoom')}>
+            <option value="zoomin">{t('merge.transitionZoomIn')}</option>
+            <option value="smoothleft">{t('merge.transitionSmoothLeft')}</option>
+            <option value="smoothright">{t('merge.transitionSmoothRight')}</option>
+            <option value="smoothup">{t('merge.transitionSmoothUp')}</option>
+            <option value="smoothdown">{t('merge.transitionSmoothDown')}</option>
+          </optgroup>
+
+          {/* 特效类 */}
+          <optgroup label={t('merge.transitionGroupSpecial')}>
+            <option value="circleopen">{t('merge.transitionCircleOpen')}</option>
+            <option value="circleclose">{t('merge.transitionCircleClose')}</option>
+            <option value="diagtl">{t('merge.transitionDiagTL')}</option>
+            <option value="diagtr">{t('merge.transitionDiagTR')}</option>
+            <option value="diagbl">{t('merge.transitionDiagBL')}</option>
+            <option value="diagbr">{t('merge.transitionDiagBR')}</option>
+            <option value="radial">{t('merge.transitionRadial')}</option>
+            <option value="hblur">{t('merge.transitionHBlur')}</option>
+          </optgroup>
         </select>
       </div>
 

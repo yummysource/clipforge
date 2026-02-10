@@ -39,11 +39,14 @@ pub async fn merge_videos(
 
     let task_id = uuid::Uuid::new_v4().to_string();
 
-    // 计算所有输入文件的总时长
-    let mut total_duration = 0.0;
+    // 收集每个视频的时长（用于转场 offset 计算和总时长统计）
+    let mut durations: Vec<f64> = Vec::new();
     for path in &params.input_paths {
-        total_duration += get_duration(&app, path).await.unwrap_or(0.0);
+        durations.push(get_duration(&app, path).await.unwrap_or(0.0));
     }
+
+    // 计算所有输入文件的总时长
+    let total_duration: f64 = durations.iter().sum();
 
     // 为 concat demuxer 创建临时文件列表
     let concat_file = temp_file_path("concat", "txt")?;
@@ -57,7 +60,7 @@ pub async fn merge_videos(
         .map_err(|e| format!("创建合并文件列表失败: {}", e))?;
 
     // 构建合并命令
-    let args = build_merge_command(&params, &concat_file);
+    let args = build_merge_command(&params, &concat_file, &durations);
 
     // 执行 ffmpeg
     let result = run_ffmpeg(
