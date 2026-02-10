@@ -38,7 +38,7 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
     toggleMute,
     stepForward,
     stepBackward,
-  } = useVideoPlayer();
+  } = useVideoPlayer(filePath);
 
   /** 将本地路径转为 Tauri asset URL */
   const videoSrc = filePath ? convertFileSrc(filePath) : '';
