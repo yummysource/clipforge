@@ -48,9 +48,13 @@ export interface UseVideoPlayerReturn {
  * 提供对 HTML5 video 元素的完整播放控制接口。
  * 通过 ref 绑定到 video 元素，自动同步播放状态。
  *
+ * @param triggerKey - Optional dependency that triggers listener re-attachment.
+ *   Pass the file path so that when the video element appears in the DOM
+ *   (e.g. filePath changes from null to a value), the effect re-runs and
+ *   correctly binds event listeners to the now-available video element.
  * @returns 播放器引用、状态和控制函数
  */
-export function useVideoPlayer(): UseVideoPlayerReturn {
+export function useVideoPlayer(triggerKey?: unknown): UseVideoPlayerReturn {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [state, setState] = useState<VideoPlayerState>({
     isPlaying: false,
@@ -60,10 +64,21 @@ export function useVideoPlayer(): UseVideoPlayerReturn {
     isMuted: false,
   });
 
-  /* 绑定 video 元素事件监听 */
+  /* Bind video element event listeners.
+   * Re-runs when triggerKey changes (typically filePath), ensuring listeners
+   * are attached even when the <video> element is conditionally rendered. */
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    // Reset state when source changes
+    setState({
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      volume: video.volume,
+      isMuted: video.muted,
+    });
 
     /** 安全读取时长（过滤 NaN/Infinity） */
     const safeDuration = () => {
@@ -117,7 +132,8 @@ export function useVideoPlayer(): UseVideoPlayerReturn {
       video.removeEventListener('pause', onPause);
       video.removeEventListener('volumechange', onVolumeChange);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerKey]);
 
   const play = useCallback(() => { videoRef.current?.play(); }, []);
   const pause = useCallback(() => { videoRef.current?.pause(); }, []);
