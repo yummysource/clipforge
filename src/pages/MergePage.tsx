@@ -24,7 +24,7 @@ import { useT } from '@/i18n';
  */
 export function MergePage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask('merge');
+  const { status, progress, result, error, execute, cancel, reset } = useTask('merge');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const setSelectedIndex = useAppStore((s) => s.setSelectedFileIndex);
@@ -85,6 +85,7 @@ export function MergePage() {
       onStart={handleStart}
       onCancel={cancel}
       onReset={handleReset}
+      taskResult={result}
       startDisabled={files.length < 2}
       startLabel={t('merge.mergeFiles', { count: files.length })}
     >

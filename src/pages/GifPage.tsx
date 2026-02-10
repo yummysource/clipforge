@@ -26,7 +26,7 @@ import { useT } from '@/i18n';
  */
 export function GifPage() {
   const t = useT();
-  const { status, progress, error, execute, cancel, reset } = useTask('gif');
+  const { status, progress, result, error, execute, cancel, reset } = useTask('gif');
   const files = useAppStore((s) => s.files);
   const selectedIndex = useAppStore((s) => s.selectedFileIndex);
   const clearFiles = useAppStore((s) => s.clearFiles);
@@ -86,6 +86,7 @@ export function GifPage() {
       onStart={handleStart}
       onCancel={cancel}
       onReset={handleReset}
+      taskResult={result}
       startLabel={t('gif.generateGif')}
     >
       {/* 时间轴选择器 */}

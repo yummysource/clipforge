@@ -119,6 +119,8 @@ const en = {
     tasksRunning: '{count} tasks running',
     noActiveTasks: 'No active tasks',
     startProcessing: 'Start',
+    previewTab: 'Preview',
+    resultTab: 'Result',
   },
 
   // ── 格式转换页 ──
