@@ -27,6 +27,12 @@ export interface FormatInfo {
   vcodec: string;
   /** 音频编码 */
   acodec: string;
+  /**
+   * 传输协议（来自 yt-dlp）
+   * - "https" / "http"：原生 HTTP 渐进下载，视频+音频完整，最可靠
+   * - "m3u8" / "m3u8_native"：HLS 自适应流，音视频可能分离，不支持 + 合并语法
+   */
+  protocol: string;
 }
 
 /** 视频信息（对应 Rust VideoInfo） */

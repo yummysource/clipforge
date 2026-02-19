@@ -432,6 +432,9 @@ pub struct FormatInfo {
     pub vcodec: String,
     /// 音频编码（如 "aac"、"opus"）
     pub acodec: String,
+    /// 传输协议（如 "https"、"m3u8"、"m3u8_native"）
+    /// 用于区分原生 HTTP 下载和 HLS 流，优先选择 https 格式
+    pub protocol: String,
 }
 
 /// yt-dlp 解析出的视频基本信息

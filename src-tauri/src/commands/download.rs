@@ -139,6 +139,7 @@ pub async fn download_video(
             "-o", &params.output_path,
             "--newline",
             "--no-part",
+            "--no-continue",    // 禁止断点续传：避免遗留文件触发 Range 请求返回 HTTP 416
             "--no-playlist",
             "--ffmpeg-location", &ffmpeg_dir,
             &params.url,
@@ -269,16 +270,8 @@ fn parse_formats(formats_json: &serde_json::Value) -> Vec<FormatInfo> {
         let vcodec = f["vcodec"].as_str().unwrap_or("none").to_string();
         let acodec = f["acodec"].as_str().unwrap_or("none").to_string();
 
-        // 跳过无用格式
+        // 跳过明确无用的格式（缩略图/故事板）
         if ext == "mhtml" || vcodec == "images" {
-            continue;
-        }
-
-        let has_video = vcodec != "none";
-        let has_audio = acodec != "none";
-
-        // 至少包含视频或音频
-        if !has_video && !has_audio {
             continue;
         }
 
@@ -295,6 +288,33 @@ fn parse_formats(formats_json: &serde_json::Value) -> Vec<FormatInfo> {
             .or_else(|| f["filesize_approx"].as_u64())
             .unwrap_or(0);
 
+        // 传输协议：区分原生 HTTP 下载（https）和 HLS 流（m3u8/m3u8_native）
+        // Twitter/X 等平台同时提供两种协议，优先选 https 以保证音视频完整性
+        let protocol = f["protocol"].as_str().unwrap_or("https").to_string();
+
+        // Twitter/X 等平台的 HTTP 渐进式下载格式：
+        // yt-dlp 无法从清单中解析编解码器，将 vcodec/acodec 都报告为 "none"，
+        // 但实际文件是完整的视频+音频 MP4。
+        // 判断依据：vcodec/acodec 均为 "none"，协议是 https/http，且有分辨率高度
+        let is_opaque_http_video = vcodec == "none"
+            && acodec == "none"
+            && (protocol == "https" || protocol == "http")
+            && height > 0;
+
+        // 判断 has_video / has_audio（注意顺序：先算 is_opaque_http_video）：
+        // - 普通格式：直接用 codec 是否为 "none" 判断
+        // - is_opaque_http_video：视为完整视频+音频（Twitter/X HTTP 格式）
+        // - height==0 && vcodec=="none"：视为纯音频流（HLS audio 流 / 独立音轨）
+        let has_video = vcodec != "none" || is_opaque_http_video;
+        let has_audio = acodec != "none"
+            || is_opaque_http_video
+            || (height == 0 && vcodec == "none"); // HLS 音频流（height=0）
+
+        // 跳过既没有视频也没有音频的格式
+        if !has_video && !has_audio {
+            continue;
+        }
+
         result.push(FormatInfo {
             format_id,
             format_note,
@@ -306,6 +326,7 @@ fn parse_formats(formats_json: &serde_json::Value) -> Vec<FormatInfo> {
             has_audio,
             vcodec: vcodec.replace("none", ""),
             acodec: acodec.replace("none", ""),
+            protocol,
         });
     }
 

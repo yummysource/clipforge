@@ -98,7 +98,8 @@ export function DownloadPage() {
   }, [videoInfo, selectedFormatId, url, outputDir, execute]);
 
   /**
-   * 重置所有状态
+   * 重置所有状态（Reset 按钮 / 取消）
+   * @description 清空 URL、视频信息、格式选择，回到初始界面
    */
   const handleReset = useCallback(() => {
     reset();
@@ -106,6 +107,15 @@ export function DownloadPage() {
     setVideoInfo(null);
     setSelectedFormatId(null);
     setParseError(null);
+  }, [reset]);
+
+  /**
+   * 关闭完成通知（不清空界面）
+   * @description 下载成功后点 Continue，只关闭通知浮层，保留视频信息和格式选择，
+   * 方便用户继续下载其他格式或重新选择，无需重新解析
+   */
+  const handleDismissCompleted = useCallback(() => {
+    reset();
   }, [reset]);
 
   const isRunning = status === 'running';
@@ -330,7 +340,7 @@ export function DownloadPage() {
             status={status}
             progress={progress}
             error={error}
-            onReset={handleReset}
+            onReset={status === 'completed' ? handleDismissCompleted : handleReset}
           />
         </div>
       )}
@@ -444,11 +454,33 @@ interface GroupedFormats {
 }
 
 /**
+ * 判断某格式是否为"原生"格式（HTTP 渐进下载，视频+音频完整）
+ *
+ * yt-dlp 中 protocol 为 "https"/"http" 的格式是原生 HTTP 下载，
+ * 视频和音频封装在同一个文件中，最可靠。
+ * "m3u8"/"m3u8_native" 是 HLS 自适应流，在 Twitter/X 等平台上
+ * 视频流和音频流可能分离，不支持 yt-dlp 的 "video+audio" 合并语法。
+ *
+ * @param f - 格式信息
+ * @returns 是否为原生 HTTP 格式
+ */
+function isNativeHttpFormat(f: FormatInfo): boolean {
+  const p = (f.protocol || '').toLowerCase();
+  // https/http 是原生格式；m3u8/m3u8_native/dash 是流媒体格式
+  return p === 'https' || p === 'http' || p === '';
+}
+
+/**
  * 智能分组：将仅视频格式自动配对最佳音频，生成"视频+音频"合并选项
  *
  * YouTube 等平台的高清视频（720p+）都是 DASH 格式（视频/音频分离），
  * 此函数自动找到最佳音频流，与每个仅视频流配对，生成 `video_id+audio_id`
  * 的格式 ID，yt-dlp 会在下载时自动用 ffmpeg 合并两个流。
+ *
+ * Twitter/X 等平台同时提供 HTTP 和 HLS 格式：
+ * - HTTP 格式（http-*）视频+音频完整，应优先选择
+ * - HLS 格式（hls-*）可能无音频，且不支持 + 合并语法
+ * 去重时原生 HTTP 格式绝对优先于构造的 HLS+音频合并格式。
  *
  * @param formats - 原始格式列表
  * @returns 分组后的格式（视频+音频、仅音频）
@@ -480,25 +512,42 @@ function groupFormats(formats: FormatInfo[]): GroupedFormats {
     })[0];
 
   // 将仅视频格式与最佳音频配对，生成合并格式
-  const mergedCombined: FormatInfo[] = videoOnly.map((v) => ({
-    ...v,
-    // yt-dlp 的格式合并语法：video_id+audio_id
-    formatId: bestAudio ? `${v.formatId}+${bestAudio.formatId}` : v.formatId,
-    hasAudio: true,
-    acodec: bestAudio?.acodec || '',
-    // 合并后文件大小 ≈ 视频 + 音频
-    filesize: v.filesize + (bestAudio?.filesize || 0),
-    // 合并后输出 mp4
-    ext: 'mp4',
-  }));
+  // 注意：只有非 HLS 格式（HTTP 渐进下载）支持 yt-dlp 的 "video+audio" 合并语法
+  const mergedCombined: FormatInfo[] = videoOnly
+    .filter((v) => isNativeHttpFormat(v)) // 仅对原生 HTTP 格式做合并，跳过 HLS
+    .map((v) => ({
+      ...v,
+      // yt-dlp 的格式合并语法：video_id+audio_id
+      formatId: bestAudio ? `${v.formatId}+${bestAudio.formatId}` : v.formatId,
+      hasAudio: true,
+      acodec: bestAudio?.acodec || '',
+      // 合并后文件大小 ≈ 视频 + 音频
+      filesize: v.filesize + (bestAudio?.filesize || 0),
+      // 合并后输出 mp4
+      ext: 'mp4',
+    }));
 
-  // 合并原生视频+音频格式和自动配对的格式，去重后按分辨率降序
-  const allCombined = [...mergedCombined, ...nativeCombined];
-  // 按分辨率去重（同一分辨率保留文件最大的）
+  // 去重策略（优先级从高到低）：
+  //   1. 原生 HTTP 视频+音频（nativeCombined，最可靠）
+  //   2. 原生 HTTP 仅视频 + 分离音频构造（mergedCombined）
+  // 原生格式放在前面，确保同分辨率时原生格式不被构造格式覆盖。
+  // 仅当构造格式文件大小明显更大时才替换（实际上原生一旦占位就不会被覆盖，
+  // 因为条件是严格大于，而非大于等于）。
+  const allCombined = [...nativeCombined, ...mergedCombined];
+
+  // 按分辨率去重：同一高度只保留优先级最高的格式
+  // 原生格式先入 Map，构造格式的 filesize 通常 ≤ 原生，不会替换原生
   const seen = new Map<number, FormatInfo>();
   for (const f of allCombined) {
     const existing = seen.get(f.height);
-    if (!existing || f.filesize > existing.filesize) {
+    if (!existing) {
+      // 第一次见到该分辨率，直接加入
+      seen.set(f.height, f);
+    } else if (!existing.formatId.includes('+') && f.formatId.includes('+')) {
+      // 现有是原生（无 +），新的是构造合并（有 +），保留原生，跳过
+      // do nothing
+    } else if (f.filesize > existing.filesize) {
+      // 同类型中保留文件较大（质量更高）的
       seen.set(f.height, f);
     }
   }
