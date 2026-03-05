@@ -164,6 +164,9 @@ const en = {
     preciseCutDesc: 'Re-encode for frame-accurate cutting, slower',
     mergeSegments: 'Merge segments',
     mergeSegmentsDesc: 'Merge multiple segments into one file',
+    // 锚点式分割新增 key
+    keptSegments: '{count} segments kept',
+    allSegmentsSkipped: 'At least one segment must be kept',
   },
 
   // ── 合并页 ──
@@ -406,6 +409,13 @@ const en = {
     duration: 'Duration',
     segmentsSelected: '{count} segments selected',
     addSegment: '+ Add segment',
+    // 锚点式分割时间轴新增 key
+    clickToAddAnchor: 'Click to add anchor',
+    anchorCount: '{count} anchors',
+    segmentKept: 'Keep',
+    segmentSkipped: 'Skip',
+    noAnchors: 'No anchors — click timeline to split',
+    anchorDeleteHint: 'Click anchor to delete',
   },
 
   // ── ETA 格式化 ──

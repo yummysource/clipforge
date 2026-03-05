@@ -165,6 +165,9 @@ const zh: Translations = {
     preciseCutDesc: '重新编码以实现帧级精确，速度较慢',
     mergeSegments: '合并片段',
     mergeSegmentsDesc: '将多个片段合并为一个文件',
+    // 锚点式分割新增 key
+    keptSegments: '已保留 {count} 段',
+    allSegmentsSkipped: '至少保留一段',
   },
 
   // ── 合并页 ──
@@ -407,6 +410,13 @@ const zh: Translations = {
     duration: '时长',
     segmentsSelected: '已选 {count} 个片段',
     addSegment: '+ 添加片段',
+    // 锚点式分割时间轴新增 key
+    clickToAddAnchor: '点击添加锚点',
+    anchorCount: '{count} 个锚点',
+    segmentKept: '保留',
+    segmentSkipped: '跳过',
+    noAnchors: '无锚点 — 点击时间轴分割视频',
+    anchorDeleteHint: '点击锚点可删除',
   },
 
   // ── ETA 格式化 ──
