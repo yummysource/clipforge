@@ -125,6 +125,16 @@ export function SplitTimeline({
   /** RAF 节流句柄，避免 seek 过于频繁 */
   const rafRef = useRef<number | null>(null);
 
+  /**
+   * 最新值 ref：在渲染阶段同步更新，供拖动 effect 内部读取。
+   *
+   * 使用此模式可让拖动 effect 只依赖 draggingId，避免每次 anchors 状态更新
+   * 时 effect teardown → cancelAnimationFrame 取消了正在排队的 seek RAF。
+   */
+  const latestRef = useRef({ anchors, duration, onAnchorsChange, onSeek, draggingId });
+  // 每次渲染时同步更新（在 effect 运行之前完成）
+  latestRef.current = { anchors, duration, onAnchorsChange, onSeek, draggingId };
+
   // ── 坐标 ↔ 时间转换 ──────────────────────────────────────────────────
 
   /**
@@ -277,21 +287,40 @@ export function SplitTimeline({
     if (!draggingId) return;
 
     const onMove = (e: MouseEvent) => {
-      const time = xToTime(e.clientX);
+      // 从 latestRef 读取最新值：避免 effect 因 anchors/onSeek 变化而 teardown，
+      // 防止 cancelAnimationFrame 把正在排队的 seek RAF 提前取消。
+      const {
+        anchors: currentAnchors,
+        duration: currentDuration,
+        onAnchorsChange: currentOnAnchorsChange,
+        onSeek: currentOnSeek,
+        draggingId: currentDraggingId,
+      } = latestRef.current;
+      if (!currentDraggingId) return;
 
-      // 获取排序后的锚点，限制拖动范围不超出相邻锚点
-      const sorted = [...anchors].sort((a, b) => a.time - b.time);
-      const idx = sorted.findIndex((a) => a.id === draggingId);
+      const rect = trackRef.current?.getBoundingClientRect();
+      if (!rect || rect.width === 0) return;
+      const ratio = (e.clientX - rect.left) / rect.width;
+      const rawTime = Math.max(0, Math.min(currentDuration, ratio * currentDuration));
+
+      // 限制拖动范围不超出相邻锚点
+      const sorted = [...currentAnchors].sort((a, b) => a.time - b.time);
+      const idx = sorted.findIndex((a) => a.id === currentDraggingId);
       const minTime = idx > 0 ? sorted[idx - 1].time + 0.1 : 0.1;
-      const maxTime = idx < sorted.length - 1 ? sorted[idx + 1].time - 0.1 : duration - 0.1;
-      const clamped = Math.max(minTime, Math.min(maxTime, time));
+      const maxTime =
+        idx < sorted.length - 1 ? sorted[idx + 1].time - 0.1 : currentDuration - 0.1;
+      const clamped = Math.max(minTime, Math.min(maxTime, rawTime));
 
-      onAnchorsChange(anchors.map((a) => (a.id === draggingId ? { ...a, time: clamped } : a)));
+      currentOnAnchorsChange(
+        currentAnchors.map((a) =>
+          a.id === currentDraggingId ? { ...a, time: clamped } : a,
+        ),
+      );
 
-      // RAF 节流：避免 seek 调用过于密集
+      // RAF 节流：effect 不会再被 teardown，RAF 可以正常执行
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(() => {
-        onSeek?.(clamped);
+        currentOnSeek?.(clamped);
         rafRef.current = null;
       });
     };
@@ -306,7 +335,8 @@ export function SplitTimeline({
       window.removeEventListener('mouseup', onUp);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [draggingId, anchors, duration, xToTime, onAnchorsChange, onSeek]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draggingId]); // 只在拖动开始/结束时重建，内部通过 latestRef 读取最新值
 
   // ── 渲染 ─────────────────────────────────────────────────────────────
 

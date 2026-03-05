@@ -64,6 +64,14 @@ export function TrimPage() {
   }, []);
 
   /**
+   * 传给 SplitTimeline 的 seek 回调，稳定引用（通过 ref 读取最新 seek 函数）。
+   * 使用 useCallback 避免每次渲染产生新函数引用，减少 SplitTimeline 不必要的重渲染。
+   */
+  const handleSeek = useCallback((time: number) => {
+    seekRef.current?.(time);
+  }, []);
+
+  /**
    * 计算最终要传给 ffmpeg 的片段列表（仅 included=true 的段）
    *
    * @returns 过滤后的 start/end 片段数组
@@ -131,7 +139,7 @@ export function TrimPage() {
         segmentIncluded={segmentIncluded}
         onAnchorsChange={setAnchors}
         onSegmentIncludedChange={setSegmentIncluded}
-        onSeek={(time) => seekRef.current?.(time)}
+        onSeek={handleSeek}
         className="mb-6"
       />
 
