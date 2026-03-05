@@ -416,7 +416,8 @@ const zh: Translations = {
     segmentKept: '保留',
     segmentSkipped: '跳过',
     noAnchors: '无锚点 — 点击时间轴分割视频',
-    anchorDeleteHint: '点击锚点可删除',
+    anchorDeleteHint: '拖动可移动位置 · 右键删除锚点',
+    deleteAnchor: '删除锚点',
   },
 
   // ── ETA 格式化 ──

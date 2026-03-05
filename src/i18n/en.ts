@@ -415,7 +415,8 @@ const en = {
     segmentKept: 'Keep',
     segmentSkipped: 'Skip',
     noAnchors: 'No anchors — click timeline to split',
-    anchorDeleteHint: 'Click anchor to delete',
+    anchorDeleteHint: 'Drag to reposition · Right-click anchor to delete',
+    deleteAnchor: 'Delete anchor',
   },
 
   // ── ETA 格式化 ──

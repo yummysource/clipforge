@@ -38,6 +38,8 @@ export function TrimPage() {
 
   const currentFile = files[selectedIndex];
   const duration = currentFile?.mediaInfo?.duration ?? 0;
+  /** 视频帧率，用于时间轴帧格式显示；无视频流时 fallback 到 undefined */
+  const fps = currentFile?.mediaInfo?.videoStreams[0]?.frameRate;
 
   /** 锚点列表（空 = 无分割，整段视频） */
   const [anchors, setAnchors] = useState<Anchor[]>([]);
@@ -47,6 +49,9 @@ export function TrimPage() {
 
   /** 是否启用精确切割（重编码，帧级精确但较慢） */
   const [preciseCut, setPreciseCut] = useState(false);
+
+  /** 多段时是否合并为单文件（false = 拆分为独立文件，默认） */
+  const [mergeSegments, setMergeSegments] = useState(false);
 
   /**
    * seek 函数 ref，由 VideoPreview 通过 FeatureLayout.onVideoSeekReady 注入。
@@ -100,9 +105,9 @@ export function TrimPage() {
       ),
       segments,
       preciseCut,
-      mergeSegments: true, // 多段始终合并为单文件
+      mergeSegments,
     });
-  }, [currentFile, computeSegments, preciseCut, outputSuffix, execute]);
+  }, [currentFile, computeSegments, preciseCut, mergeSegments, outputSuffix, execute]);
 
   /**
    * 全量重置：清除文件、任务状态、锚点和片段状态
@@ -112,6 +117,7 @@ export function TrimPage() {
     clearFiles();
     setAnchors([]);
     setSegmentIncluded([true]);
+    setMergeSegments(false);
   }, [reset, clearFiles]);
 
   /** 当前保留的段数，用于判断开始按钮是否可用 */
@@ -140,6 +146,7 @@ export function TrimPage() {
         onAnchorsChange={setAnchors}
         onSegmentIncludedChange={setSegmentIncluded}
         onSeek={handleSeek}
+        fps={fps}
         className="mb-6"
       />
 
@@ -154,6 +161,36 @@ export function TrimPage() {
         >
           {t('trim.allSegmentsSkipped')}
         </p>
+      )}
+
+      {/* 合并/拆分开关：仅当存在锚点（多段）时显示 */}
+      {anchors.length > 0 && (
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+              {t('trim.mergeSegments')}
+            </p>
+            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+              {t('trim.mergeSegmentsDesc')}
+            </p>
+          </div>
+          <button
+            onClick={() => setMergeSegments(!mergeSegments)}
+            className="relative w-10 h-6 rounded-full transition-colors cursor-pointer"
+            style={{
+              backgroundColor: mergeSegments ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <span
+              className="absolute top-0.5 w-4 h-4 rounded-full transition-transform"
+              style={{
+                left: mergeSegments ? '20px' : '2px',
+                backgroundColor: mergeSegments ? 'white' : 'var(--color-text-placeholder)',
+              }}
+            />
+          </button>
+        </div>
       )}
 
       {/* 精确切割开关 */}

@@ -67,14 +67,43 @@ export function formatTimecode(seconds: number): string {
 }
 
 /**
+ * 格式化时长为 CapCut 风格帧时间码 HH:MM:SS:FF
+ *
+ * 最后一位为当前秒内的帧序号（0 到 fps-1），与剪映/CapCut 显示格式一致
+ *
+ * @param seconds - 时长（秒），支持浮点数
+ * @param fps - 视频帧率，如 25、29.97、30、60
+ * @returns 格式化后的字符串，如 "00:21:45:28"
+ */
+export function formatTimecodeFrames(seconds: number, fps: number): string {
+  if (!seconds || seconds < 0) return '00:00:00:00';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  /* 当前秒内的帧序号：取小数部分乘以帧率再向下取整 */
+  const f = Math.floor((seconds % 1) * fps);
+
+  return [
+    h.toString().padStart(2, '0'),
+    m.toString().padStart(2, '0'),
+    s.toString().padStart(2, '0'),
+    f.toString().padStart(2, '0'),
+  ].join(':');
+}
+
+/**
  * 解析时间码字符串为秒数
  *
- * 支持 HH:MM:SS.mmm 和 MM:SS 格式
+ * 支持三种格式：
+ * - HH:MM:SS.mmm（毫秒格式）
+ * - HH:MM:SS:FF（帧格式，需传入 fps）
+ * - MM:SS
  *
  * @param timecode - 时间码字符串
+ * @param fps - 视频帧率，解析帧格式时使用（可选）
  * @returns 秒数（浮点），解析失败返回 0
  */
-export function parseTimecode(timecode: string): number {
+export function parseTimecode(timecode: string, fps?: number): number {
   const parts = timecode.split(':');
   if (parts.length < 2) return 0;
 
@@ -82,7 +111,15 @@ export function parseTimecode(timecode: string): number {
   let minutes = 0;
   let seconds = 0;
 
-  if (parts.length === 3) {
+  if (parts.length === 4 && fps && fps > 0) {
+    /* HH:MM:SS:FF 帧格式 */
+    hours = parseInt(parts[0], 10) || 0;
+    minutes = parseInt(parts[1], 10) || 0;
+    seconds = parseInt(parts[2], 10) || 0;
+    const frames = parseInt(parts[3], 10) || 0;
+    return hours * 3600 + minutes * 60 + seconds + frames / fps;
+  } else if (parts.length === 3) {
+    /* HH:MM:SS.mmm 毫秒格式 */
     hours = parseInt(parts[0], 10) || 0;
     minutes = parseInt(parts[1], 10) || 0;
     seconds = parseFloat(parts[2]) || 0;

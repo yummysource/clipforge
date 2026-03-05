@@ -14,7 +14,7 @@
  * - 点击片段色块或片段列表行 → 切换保留/跳过
  */
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { formatTimecode, parseTimecode } from '@/lib/format';
+import { formatTimecode, formatTimecodeFrames, parseTimecode } from '@/lib/format';
 import { useT } from '@/i18n';
 
 // ─── 类型定义 ─────────────────────────────────────────────────────────────
@@ -41,6 +41,8 @@ interface SplitTimelineProps {
   onSegmentIncludedChange: (included: boolean[]) => void;
   /** 拖动锚点时 seek 视频（可选，由父组件注入） */
   onSeek?: (time: number) => void;
+  /** 视频帧率，提供时使用 HH:MM:SS:FF 帧格式，否则使用 HH:MM:SS.mmm */
+  fps?: number;
   /** 自定义 CSS class */
   className?: string;
 }
@@ -109,9 +111,21 @@ export function SplitTimeline({
   onAnchorsChange,
   onSegmentIncludedChange,
   onSeek,
+  fps,
   className,
 }: SplitTimelineProps) {
   const t = useT();
+
+  /**
+   * 统一时间格式化函数：有 fps 时使用帧格式 HH:MM:SS:FF，否则毫秒格式 HH:MM:SS.mmm
+   *
+   * @param seconds - 时间（秒）
+   */
+  const fmt = useCallback(
+    (seconds: number) =>
+      fps && fps > 0 ? formatTimecodeFrames(seconds, fps) : formatTimecode(seconds),
+    [fps],
+  );
 
   /** 时间轴主轨道 DOM ref，用于计算鼠标位置对应的时间 */
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -121,6 +135,16 @@ export function SplitTimeline({
 
   /** 鼠标悬停时对应的时间（秒），用于显示 ghost 预览线 */
   const [hoverTime, setHoverTime] = useState<number | null>(null);
+
+  /**
+   * 右键菜单状态：记录触发菜单的锚点 ID 和屏幕坐标。
+   * null 表示菜单隐藏。
+   */
+  const [contextMenu, setContextMenu] = useState<{
+    anchorId: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   /** RAF 节流句柄，避免 seek 过于频繁 */
   const rafRef = useRef<number | null>(null);
@@ -134,6 +158,18 @@ export function SplitTimeline({
   const latestRef = useRef({ anchors, duration, onAnchorsChange, onSeek, draggingId });
   // 每次渲染时同步更新（在 effect 运行之前完成）
   latestRef.current = { anchors, duration, onAnchorsChange, onSeek, draggingId };
+
+  /** 点击任意位置关闭右键菜单 */
+  useEffect(() => {
+    if (!contextMenu) return;
+    const dismiss = () => setContextMenu(null);
+    window.addEventListener('click', dismiss);
+    window.addEventListener('contextmenu', dismiss);
+    return () => {
+      window.removeEventListener('click', dismiss);
+      window.removeEventListener('contextmenu', dismiss);
+    };
+  }, [contextMenu]);
 
   // ── 坐标 ↔ 时间转换 ──────────────────────────────────────────────────
 
@@ -234,28 +270,26 @@ export function SplitTimeline({
 
   /**
    * 点击时间轴主轨道：
-   * - 若点击位置距已有锚点 < 8px（像素阈值换算为时间比例）→ 删除
+   * - 靠近已有锚点（8px 阈值）→ 忽略，避免重叠
    * - 否则 → 添加新锚点并 seek
+   *
+   * 删除锚点的唯一方式是右键菜单。
    */
   const handleTrackClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (draggingId) return; // 拖动中不触发 click
       const time = xToTime(e.clientX);
 
-      // 8px 阈值换算为时间
+      // 8px 阈值换算为时间，靠近已有锚点时忽略（防止意外重叠）
       const trackWidth = trackRef.current?.getBoundingClientRect().width ?? 0;
       const threshold = trackWidth > 0 ? duration * (8 / trackWidth) : 0;
       const nearby = anchors.find((a) => Math.abs(a.time - time) < threshold);
-
-      if (nearby) {
-        removeAnchor(nearby.id);
-        return;
-      }
+      if (nearby) return;
 
       addAnchor(time);
       onSeek?.(time);
     },
-    [draggingId, xToTime, duration, anchors, removeAnchor, addAnchor, onSeek],
+    [draggingId, xToTime, duration, anchors, addAnchor, onSeek],
   );
 
   /**
@@ -280,6 +314,21 @@ export function SplitTimeline({
     e.stopPropagation(); // 阻止冒泡，避免触发 track click
     setDraggingId(anchorId);
   }, []);
+
+  /**
+   * 锚点右键菜单：阻止浏览器默认菜单，记录菜单位置和目标锚点 ID
+   *
+   * @param anchorId - 右键点击的锚点 ID
+   * @param e - contextmenu 事件
+   */
+  const handleAnchorContextMenu = useCallback(
+    (anchorId: string, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setContextMenu({ anchorId, x: e.clientX, y: e.clientY });
+    },
+    [],
+  );
 
   // ── 拖动 mousemove / mouseup（绑定到 window）───────────────────────
 
@@ -430,6 +479,8 @@ export function SplitTimeline({
               cursor: draggingId === anchor.id ? 'grabbing' : 'grab',
             }}
             onMouseDown={(e) => startDrag(anchor.id, e)}
+            onClick={(e) => e.stopPropagation()} // 阻止冒泡，防止在轨道上误触添加
+            onContextMenu={(e) => handleAnchorContextMenu(anchor.id, e)}
           >
             {/* 竖线（从三角顶到轨道顶） */}
             <div
@@ -471,7 +522,7 @@ export function SplitTimeline({
                   pointerEvents: 'none',
                 }}
               >
-                {formatTimecode(anchor.time)}
+                {fmt(anchor.time)}
               </div>
             )}
           </div>
@@ -495,7 +546,7 @@ export function SplitTimeline({
               zIndex: 20,
             }}
           >
-            {formatTimecode(hoverTime)}
+            {fmt(hoverTime)}
           </div>
         )}
       </div>
@@ -530,7 +581,7 @@ export function SplitTimeline({
                   lineHeight: 1,
                 }}
               >
-                {formatTimecode(tick)}
+                {fmt(tick)}
               </span>
             </div>
           ))}
@@ -563,11 +614,11 @@ export function SplitTimeline({
               </label>
               <input
                 type="text"
-                defaultValue={formatTimecode(anchor.time)}
+                defaultValue={fmt(anchor.time)}
                 key={`${anchor.id}-${anchor.time}`}
                 onBlur={(e) => {
-                  // blur 时解析并更新锚点时间
-                  const parsed = parseTimecode(e.target.value);
+                  // blur 时解析并更新锚点时间（传 fps 以支持帧格式反解析）
+                  const parsed = parseTimecode(e.target.value, fps);
                   if (!isNaN(parsed) && parsed >= 0 && parsed <= duration) {
                     onAnchorsChange(
                       anchors.map((a) => (a.id === anchor.id ? { ...a, time: parsed } : a)),
@@ -627,21 +678,33 @@ export function SplitTimeline({
                 color: 'var(--color-text-primary)',
               }}
             >
-              #{i + 1} &nbsp; {formatTimecode(seg.start)} → {formatTimecode(seg.end)}
+              #{i + 1} &nbsp; {fmt(seg.start)} → {fmt(seg.end)}
               &nbsp;&nbsp;
-              {formatTimecode(seg.end - seg.start)}
+              {fmt(seg.end - seg.start)}
             </span>
-            <span
+            {/* Keep / Skip 胶囊按钮，明确表示可点击切换 */}
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleSegment(i); }}
               style={{
+                padding: '3px 12px',
+                borderRadius: '20px',
                 fontSize: 'var(--font-size-xs)',
                 fontWeight: 600,
-                color: segmentIncluded[i]
+                cursor: 'pointer',
+                transition: 'background-color 0.15s, color 0.15s',
+                backgroundColor: segmentIncluded[i]
                   ? 'var(--color-accent)'
-                  : 'var(--color-text-placeholder)',
+                  : 'var(--color-bg-secondary)',
+                color: segmentIncluded[i]
+                  ? 'var(--color-text-inverse)'
+                  : 'var(--color-text-secondary)',
+                border: segmentIncluded[i]
+                  ? '1px solid var(--color-accent)'
+                  : '1px solid var(--color-border)',
               }}
             >
               {segmentIncluded[i] ? t('timeline.segmentKept') : t('timeline.segmentSkipped')}
-            </span>
+            </button>
           </div>
         ))}
       </div>
@@ -656,6 +719,53 @@ export function SplitTimeline({
       >
         {anchors.length === 0 ? t('timeline.noAnchors') : t('timeline.anchorDeleteHint')}
       </p>
+
+      {/* ── 右键菜单（position: fixed，跟随鼠标坐标） ─── */}
+      {contextMenu && (
+        <div
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 9999,
+            backgroundColor: 'var(--color-bg-secondary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            padding: '4px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            minWidth: '140px',
+          }}
+          onClick={(e) => e.stopPropagation()} // 阻止冒泡触发全局关闭
+        >
+          <button
+            style={{
+              display: 'block',
+              width: '100%',
+              padding: '7px 12px',
+              textAlign: 'left',
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-error)',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+                'var(--color-bg-tertiary)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
+            }}
+            onClick={() => {
+              removeAnchor(contextMenu.anchorId);
+              setContextMenu(null);
+            }}
+          >
+            {t('timeline.deleteAnchor')}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
