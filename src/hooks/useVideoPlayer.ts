@@ -148,7 +148,9 @@ export function useVideoPlayer(triggerKey?: unknown): UseVideoPlayerReturn {
   const seek = useCallback((time: number) => {
     const video = videoRef.current;
     if (!video) return;
-    video.currentTime = Math.max(0, Math.min(time, video.duration || 0));
+    // 不用 video.duration 做上限：大文件元数据可能尚未加载（duration = NaN/0），
+    // 用 || 0 会导致每次 seek 都跳到 0。浏览器自身会处理超出范围的 currentTime。
+    video.currentTime = Math.max(0, time);
   }, []);
 
   /** 设置音量 (0-1) */

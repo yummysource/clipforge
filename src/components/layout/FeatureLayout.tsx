@@ -338,6 +338,7 @@ export function FeatureLayout({
               <VideoPreview
                 filePath={previewFilePath}
                 onSeekReady={onVideoSeekReady}
+                knownDuration={previewMediaInfo?.duration ?? undefined}
               />
             </div>
 

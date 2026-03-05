@@ -60,6 +60,11 @@ interface VideoPreviewProps {
   className?: string;
   /** 视频播放器 seek 函数就绪时的回调，用于外部组件控制预览位置 */
   onSeekReady?: (seek: (time: number) => void) => void;
+  /**
+   * 由 ffprobe 提供的已知时长（秒），用于大文件时 video.duration 尚未加载时的 fallback 显示。
+   * 不影响 seek 行为，仅用于时间轴进度条和时长文本展示。
+   */
+  knownDuration?: number;
 }
 
 /**
@@ -74,7 +79,7 @@ interface VideoPreviewProps {
  *
  * @param props - File path and style config
  */
-export function VideoPreview({ filePath, className, onSeekReady }: VideoPreviewProps) {
+export function VideoPreview({ filePath, className, onSeekReady, knownDuration }: VideoPreviewProps) {
   const t = useT();
 
   const mediaType = filePath ? getMediaType(filePath) : null;
@@ -90,8 +95,22 @@ export function VideoPreview({ filePath, className, onSeekReady }: VideoPreviewP
     stepBackward,
   } = useVideoPlayer(mediaType === 'video' ? filePath : null);
 
-  /** Convert local path to Tauri asset URL */
-  const mediaSrc = filePath ? convertFileSrc(filePath) : '';
+  /**
+   * 将本地文件路径转换为播放 URL
+   *
+   * 视频文件使用本地 HTTP 服务器（port 14200），支持 Range 请求，
+   * 解决 WKWebView asset:// 协议不支持 Range 导致大文件黑屏的问题。
+   * GIF / 音频文件体积小，无需 Range 请求，继续使用 asset:// 协议。
+   */
+  const mediaSrc = (() => {
+    if (!filePath) return '';
+    if (mediaType === 'video') {
+      /* 对路径中每个 segment 做 URI 编码，处理空格和特殊字符 */
+      const encoded = filePath.split('/').map((s) => encodeURIComponent(s)).join('/');
+      return `http://127.0.0.1:14200${encoded}`;
+    }
+    return convertFileSrc(filePath);
+  })();
 
   /** 当视频文件就绪时，把 seek 函数传给父组件 */
   useEffect(() => {
@@ -222,13 +241,16 @@ export function VideoPreview({ filePath, className, onSeekReady }: VideoPreviewP
   }
 
   /** Video preview — full player with controls */
+  // 优先使用 video 元素自身加载的时长，大文件元数据未就绪时 fallback 到 ffprobe 值
+  const effectiveDuration = state.duration > 0 ? state.duration : (knownDuration ?? 0);
+
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
-    seek(ratio * state.duration);
+    seek(ratio * effectiveDuration);
   };
 
-  const progressPercent = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
+  const progressPercent = effectiveDuration > 0 ? (state.currentTime / effectiveDuration) * 100 : 0;
 
   return (
     <div className={`flex flex-col rounded-xl overflow-hidden ${className ?? ''}`}
@@ -283,7 +305,7 @@ export function VideoPreview({ filePath, className, onSeekReady }: VideoPreviewP
 
           {/* Time display */}
           <span className="text-xs text-white/70">
-            {formatDuration(state.currentTime)} / {formatDuration(state.duration)}
+            {formatDuration(state.currentTime)} / {formatDuration(effectiveDuration)}
           </span>
         </div>
       </div>

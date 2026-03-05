@@ -25,7 +25,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost https://*.ytimg.com https://*.twimg.com https://*.cdninstagram.com https://*.fbcdn.net; media-src 'self' asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; connect-src 'self' https:",
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost https://*.ytimg.com https://*.twimg.com https://*.cdninstagram.com https://*.fbcdn.net; media-src 'self' asset: http://asset.localhost http://127.0.0.1:14200; style-src 'self' 'unsafe-inline'; connect-src 'self' https:",
       "assetProtocol": {
         "enable": true,
         "scope": ["**"]

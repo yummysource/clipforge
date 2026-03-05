@@ -7,6 +7,7 @@
 pub mod commands;
 pub mod engine;
 pub mod models;
+pub mod server;
 pub mod utils;
 
 use tauri::image::Image;
@@ -72,6 +73,11 @@ fn build_app_menu(handle: &tauri::AppHandle) -> tauri::Result<tauri::menu::Menu<
 /// macOS menu with app icon, then starts the application main loop.
 pub fn run() {
     tauri::Builder::default()
+        // 在 tokio 运行时就绪后启动本地 HTTP 文件服务器（解决大视频播放问题）
+        .setup(|_app| {
+            server::start();
+            Ok(())
+        })
         // Register Tauri plugins
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
