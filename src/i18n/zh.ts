@@ -229,7 +229,8 @@ const zh: Translations = {
     transitionDuration: '转场时长: {value}s',
     normalize: '统一分辨率/帧率',
     normalizeDesc: '自动将所有视频调整为一致的分辨率和帧率',
-    mergeFiles: '合并 {count} 个文件',
+    mergeFiles: '合并 {count} 个片段',
+    repeatTitle: '重复次数',
   },
 
   // ── 音频页 ──

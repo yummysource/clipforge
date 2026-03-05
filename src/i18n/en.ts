@@ -228,7 +228,8 @@ const en = {
     transitionDuration: 'Transition duration: {value}s',
     normalize: 'Normalize resolution/fps',
     normalizeDesc: 'Auto adjust all videos to same resolution and frame rate',
-    mergeFiles: 'Merge {count} files',
+    mergeFiles: 'Merge {count} clips',
+    repeatTitle: 'Repeat count',
   },
 
   // ── 音频页 ──

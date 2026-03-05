@@ -38,8 +38,32 @@ export function MergePage() {
   const [transitionDuration, setTransitionDuration] = useState(0.5);
   const [normalize, setNormalize] = useState(true);
 
-  /** 计算总时长 */
-  const totalDuration = files.reduce((sum, f) => sum + (f.mediaInfo?.duration ?? 0), 0);
+  /**
+   * 每个文件的重复次数，key 为 file.id，value 为重复次数（最小为 1）
+   * 不在此 map 中的文件默认重复 1 次
+   */
+  const [repeatCounts, setRepeatCounts] = useState<Record<string, number>>({});
+
+  /**
+   * 修改指定文件的重复次数
+   * @param fileId - 文件 ID
+   * @param count - 新的重复次数（自动钳制到 1 以上）
+   */
+  const setRepeat = useCallback((fileId: string, count: number) => {
+    setRepeatCounts((prev) => ({ ...prev, [fileId]: Math.max(1, count) }));
+  }, []);
+
+  /**
+   * 计算展开后的总片段数（用于按钮文案和禁用判断）
+   * 每个文件按其重复次数展开后的总片段数量
+   */
+  const totalClipCount = files.reduce((sum, f) => sum + (repeatCounts[f.id] ?? 1), 0);
+
+  /** 计算考虑重复次数后的真实总时长 */
+  const totalDuration = files.reduce(
+    (sum, f) => sum + (f.mediaInfo?.duration ?? 0) * (repeatCounts[f.id] ?? 1),
+    0,
+  );
 
   /** 简易排序 — 上移 */
   const moveUp = useCallback((index: number) => {
@@ -55,24 +79,31 @@ export function MergePage() {
 
   /** 开始合并 */
   const handleStart = useCallback(() => {
-    if (files.length < 2) return;
+    if (totalClipCount < 2) return;
 
     const firstFile = files[0];
     const outputName = generateOutputName(firstFile.name, `${outputSuffix}_merged`);
 
+    // 将每个文件按其重复次数展开为路径列表
+    // 例如 [A×3, B×1] → [A, A, A, B]
+    const expandedPaths = files.flatMap((f) =>
+      Array<string>(repeatCounts[f.id] ?? 1).fill(f.path),
+    );
+
     execute(mergeVideos, {
-      inputPaths: files.map((f) => f.path),
+      inputPaths: expandedPaths,
       outputPath: buildOutputPath(firstFile.path, outputName),
       transition: transitionType !== 'none'
         ? { transitionType, duration: transitionDuration }
         : undefined,
       normalize,
     });
-  }, [files, transitionType, transitionDuration, normalize, outputSuffix, execute]);
+  }, [files, repeatCounts, totalClipCount, transitionType, transitionDuration, normalize, outputSuffix, execute]);
 
   const handleReset = useCallback(() => {
     reset();
     clearFiles();
+    setRepeatCounts({});
   }, [reset, clearFiles]);
 
   return (
@@ -86,8 +117,8 @@ export function MergePage() {
       onCancel={cancel}
       onReset={handleReset}
       taskResult={result}
-      startDisabled={files.length < 2}
-      startLabel={t('merge.mergeFiles', { count: files.length })}
+      startDisabled={totalClipCount < 2}
+      startLabel={t('merge.mergeFiles', { count: totalClipCount })}
     >
       {/* 排序列表 */}
       <div className="mb-6">
@@ -153,6 +184,53 @@ export function MergePage() {
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   {t('merge.moveDown')}
+                </button>
+              </div>
+
+              {/* 重复次数步进器 */}
+              <div
+                className="flex items-center gap-0.5"
+                title={t('merge.repeatTitle')}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* 减少按钮 */}
+                <button
+                  onClick={() => setRepeat(file.id, (repeatCounts[file.id] ?? 1) - 1)}
+                  disabled={(repeatCounts[file.id] ?? 1) <= 1}
+                  className="w-5 h-5 flex items-center justify-center rounded cursor-pointer disabled:opacity-30 hover:opacity-70 text-xs font-bold"
+                  style={{
+                    backgroundColor: 'var(--color-bg-secondary)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  −
+                </button>
+
+                {/* 次数显示/输入 */}
+                <span
+                  className="text-xs font-medium px-1 text-center"
+                  style={{
+                    minWidth: '28px',
+                    color: (repeatCounts[file.id] ?? 1) > 1
+                      ? 'var(--color-accent)'
+                      : 'var(--color-text-secondary)',
+                  }}
+                >
+                  ×{repeatCounts[file.id] ?? 1}
+                </span>
+
+                {/* 增加按钮 */}
+                <button
+                  onClick={() => setRepeat(file.id, (repeatCounts[file.id] ?? 1) + 1)}
+                  className="w-5 h-5 flex items-center justify-center rounded cursor-pointer hover:opacity-70 text-xs font-bold"
+                  style={{
+                    backgroundColor: 'var(--color-bg-secondary)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  +
                 </button>
               </div>
 
