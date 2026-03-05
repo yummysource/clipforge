@@ -58,6 +58,8 @@ interface VideoPreviewProps {
   filePath: string | null;
   /** Custom CSS class */
   className?: string;
+  /** 视频播放器 seek 函数就绪时的回调，用于外部组件控制预览位置 */
+  onSeekReady?: (seek: (time: number) => void) => void;
 }
 
 /**
@@ -72,7 +74,7 @@ interface VideoPreviewProps {
  *
  * @param props - File path and style config
  */
-export function VideoPreview({ filePath, className }: VideoPreviewProps) {
+export function VideoPreview({ filePath, className, onSeekReady }: VideoPreviewProps) {
   const t = useT();
 
   const mediaType = filePath ? getMediaType(filePath) : null;
@@ -90,6 +92,13 @@ export function VideoPreview({ filePath, className }: VideoPreviewProps) {
 
   /** Convert local path to Tauri asset URL */
   const mediaSrc = filePath ? convertFileSrc(filePath) : '';
+
+  /** 当视频文件就绪时，把 seek 函数传给父组件 */
+  useEffect(() => {
+    if (mediaType === 'video' && filePath) {
+      onSeekReady?.(seek);
+    }
+  }, [filePath, mediaType, seek, onSeekReady]);
 
   /** Reset and reload video player when file path changes */
   useEffect(() => {

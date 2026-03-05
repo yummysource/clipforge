@@ -54,6 +54,8 @@ interface FeatureLayoutProps {
   hidePreview?: boolean;
   /** Whether to hide file info panel */
   hideFileInfo?: boolean;
+  /** 透传给 VideoPreview：视频 seek 函数就绪回调 */
+  onVideoSeekReady?: (seek: (time: number) => void) => void;
 }
 
 /**
@@ -84,6 +86,7 @@ export function FeatureLayout({
   startDisabled = false,
   hidePreview = false,
   hideFileInfo = false,
+  onVideoSeekReady,
 }: FeatureLayoutProps) {
   const t = useT();
 
@@ -332,7 +335,10 @@ export function FeatureLayout({
 
             {/* Video preview — source or output depending on tab */}
             <div className="shrink-0">
-              <VideoPreview filePath={previewFilePath} />
+              <VideoPreview
+                filePath={previewFilePath}
+                onSeekReady={onVideoSeekReady}
+              />
             </div>
 
             {/* File info — source or output depending on tab */}
